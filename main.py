@@ -72,6 +72,18 @@ ort = ImageTk.PhotoImage(ort)
 tk.Label(root, image = ort).place(x = int(WIDTH/4*2.5),y = (int(HEIGHT/2*1.4)))
 
 
+# checks 2 rules against each other, returns TRUE if they don't contradict
+def rule_compatability(rule1, rule2):
+    for item in ["room_top", "room_left", "type"]:
+        if None in [rule1[item], rule2[item]]:
+            continue
+        elif rule1[item] != rule2[item]:
+            continue
+        else:
+            return False
+    return True
+
+
 #Rules
 """
 objectrule : {
@@ -93,59 +105,125 @@ roomrule : {
 """
     
 
+#make rules for objects
 rules = []
-num_rules = 3
-
+num_rules = 6
 
 while len(rules) < num_rules:
     obj_variety = 192
     pos_variety = 12
     target = 24
     
-    rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None, "strict": False}
+    rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None}
     
     rule["room_top"] = choice([True, False, None])
     if rule["room_top"] != None:
         obj_variety /= 2
         pos_variety /=2
         if obj_variety * pos_variety <= target:
-            rules.append(rule)
+            comp = True
+            for rul in rules:
+                if not comp:
+                    break
+                else:
+                    comp = rule_compatability(rule, rul)
+            if comp:
+                rules.append(rule)
             continue
-
+    
     rule["room_left"] = choice([True, False, None])
     if rule["room_left"] != None:
         obj_variety /= 2
         pos_variety /= 2
-        if obj_variety * pos_variety <= target:
-            rules.append(rule)
+        if obj_variety * pos_variety <= target: 
+            comp = True
+            for rul in rules:
+                if not comp:
+                    break
+                else:
+                    comp = rule_compatability(rule, rul)
+            if comp:
+                rules.append(rule)
             continue
-
+    
     rule["type"] = choice(types+([None]))
     if rule["type"] != None:
         obj_variety /= 3
         pos_variety /= 3
-        if obj_variety * pos_variety <= target:
-            rules.append(rule)
+        if obj_variety * pos_variety <= target:    
+            comp = True
+            for rul in rules:
+                if not comp:
+                    break
+                else:
+                    comp = rule_compatability(rule, rul)
+            if comp:
+                rules.append(rule)
             continue 
     
     rule["colour"] = choice(colours+([None]))
     if rule["colour"] != None:
         obj_variety /= 4
         if obj_variety * pos_variety <= target:
-            rules.append(rule)
+            comp = True
+            for rul in rules:
+                if not comp:
+                    break
+                else:
+                    comp = rule_compatability(rule, rul)
+            if comp:
+                rules.append(rule)
             continue
-
+    
     rule["style"] = choice(styles+([None]))
     if rule["style"] != None:
         obj_variety /= 4
         if obj_variety * pos_variety <= target:
-            rules.append(rule)
+            comp = True
+            for rul in rules:
+                if not comp:
+                    break
+                else:
+                    comp = rule_compatability(rule, rul)
+            if comp:
+                rules.append(rule)
             continue
-
-    rules.append(rule)
     
+    comp = True
+    for rul in rules:
+        if not comp:
+            break
+        else:
+            comp = rule_compatability(rule, rul)
+    if comp:
+        rules.append(rule)    
 
-print(rules)    
+
+
+# make rules for room colour
+walls = []
+num_wall_rules = 2
+
+while len(walls) < num_wall_rules:
+    wall = {"obj": False, "top": None, "left": None, "colour": None}
+
+    wall["top"] = choice([True, False, None])    
+    
+    if wall["top"] == None:
+        wall["left"] = choice([True, False])
+    else:
+        wall["left"] = choice([True, False, None])
+    
+    wall["colour"] = choice(colours)
+    
+    walls.append(wall)
+
+rules += walls
+
+for rule in rules:
+    print(rule)
+
+
 
 
 #Mainloop

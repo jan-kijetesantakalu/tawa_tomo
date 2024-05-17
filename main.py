@@ -76,38 +76,74 @@ tk.Label(root, image = ort).place(x = int(WIDTH/4*2.5),y = (int(HEIGHT/2*1.4)))
 """
 objectrule : {
     obj = true
-	n : int
-	strict : bool
 	room_top : bool
 	room_left : bool
 	type : str | any
+	colour : str | any	
 	style : str | any
-	colour : str | any
-	
+
 }
 
 roomrule : {
     obj = false
-	n : int
-	strict : bool
-	top : bool  | any
+    top : bool  | any
 	left : bool | any
 	colour : str (red/yellow/blue/green/warm/cold)
 }
 """
     
+
 rules = []
-rule = {}
-rule["room_top"] = choice([True, False, None])
-rule["room_left"] = choice([True, False, None])
-rule["type"] = choice(types+([None]*4))
+num_rules = 3
 
 
+while len(rules) < num_rules:
+    obj_variety = 192
+    pos_variety = 12
+    target = 24
+    
+    rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None, "strict": False}
+    
+    rule["room_top"] = choice([True, False, None])
+    if rule["room_top"] != None:
+        obj_variety /= 2
+        pos_variety /=2
+        if obj_variety * pos_variety <= target:
+            rules.append(rule)
+            continue
 
-rule["colour"] = choice(colours+([None]*4))
-rule["style"] = choice(styles+([None]*4))
+    rule["room_left"] = choice([True, False, None])
+    if rule["room_left"] != None:
+        obj_variety /= 2
+        pos_variety /= 2
+        if obj_variety * pos_variety <= target:
+            rules.append(rule)
+            continue
 
+    rule["type"] = choice(types+([None]))
+    if rule["type"] != None:
+        obj_variety /= 3
+        pos_variety /= 3
+        if obj_variety * pos_variety <= target:
+            rules.append(rule)
+            continue 
+    
+    rule["colour"] = choice(colours+([None]))
+    if rule["colour"] != None:
+        obj_variety /= 4
+        if obj_variety * pos_variety <= target:
+            rules.append(rule)
+            continue
 
+    rule["style"] = choice(styles+([None]))
+    if rule["style"] != None:
+        obj_variety /= 4
+        if obj_variety * pos_variety <= target:
+            rules.append(rule)
+            continue
+
+    rules.append(rule)
+    
 
 print(rules)    
 

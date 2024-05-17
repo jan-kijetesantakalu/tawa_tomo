@@ -1,5 +1,6 @@
 global WIDTH, HEIGHT, colours, styles
 
+types = ["lamp", "hanging", "tat"]
 colours = ["red", "blue", "green", "yellow"]
 styles = ["modern", "antique", "retro", "unusual"]
 
@@ -72,8 +73,43 @@ tk.Label(root, image = ort).place(x = int(WIDTH/4*2.5),y = (int(HEIGHT/2*1.4)))
 
 
 #Rules
+"""
+objectrule : {
+    obj = true
+	n : int
+	strict : bool
+	room_top : bool
+	room_left : bool
+	type : str | any
+	style : str | any
+	colour : str | any
+	
+}
+
+roomrule : {
+    obj = false
+	n : int
+	strict : bool
+	top : bool  | any
+	left : bool | any
+	colour : str (red/yellow/blue/green/warm/cold)
+}
+"""
+    
+rules = []
+rule = {}
+rule["room_top"] = choice([True, False, None])
+rule["room_left"] = choice([True, False, None])
+rule["type"] = choice(types+([None]*4))
 
 
+
+rule["colour"] = choice(colours+([None]*4))
+rule["style"] = choice(styles+([None]*4))
+
+
+
+print(rules)    
 
 
 #Mainloop

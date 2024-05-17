@@ -1,0 +1,23 @@
+rules
+- make rules
+- slect number of rules (make suer no contradiction)
+- difficulty 
+
+menus for make stuff appear/disappear
+- make copies of lamps and shit
+- put stuff in lists
+- make appear when select
+- make disappear when not select
+
+chekc if rules :D
+- check lamps
+- check walls
+- check nicnak
+- check wall hanging
+- check totals of items
+- check totals of colour
+
+Other
+- title + splash screens
+- win screen
+- loose screen

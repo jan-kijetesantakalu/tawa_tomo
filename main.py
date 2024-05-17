@@ -1,8 +1,42 @@
-global WIDTH, HEIGHT
+global WIDTH, HEIGHT, colours, styles
+
+colours = ["red", "blue", "green", "yellow"]
+styles = ["modern", "antique", "retro", "unusual"]
 
 import tkinter as tk
+from random import *
 from PIL import Image, ImageTk
 
+#Room definition (const)
+rooms = {"kitchen": {}, "bedroom": {}, "bathroom":{}, "lounge": {}} #Contains the rooms
+rooms["kitchen"]  = {"colour": choice(colours), 
+                    "hanging": {"colour": choice(colours), "style": choice(styles)}, 
+                    "lamp": {"colour": choice(colours), "style": choice(styles)},
+                    "tat": {"colour": choice(colours), "style": choice(styles)},
+                    "top": False,
+                    "left": False
+                    }
+rooms["bedroom"]  = {"colour": choice(colours), 
+                    "hanging": {"colour": choice(colours), "style": choice(styles)}, 
+                    "lamp": {"colour": choice(colours), "style": choice(styles)},
+                    "tat": {"colour": choice(colours), "style": choice(styles)},
+                    "top": True,
+                    "left": False
+                    }
+rooms["bathroom"]  = {"colour": choice(colours), 
+                    "hanging": {"colour": choice(colours), "style": choice(styles)}, 
+                    "lamp": {"colour": choice(colours), "style": choice(styles)},
+                    "tat": {"colour": choice(colours), "style": choice(styles)},
+                    "top": True,
+                    "left": True 
+                    }
+rooms["lounge"]  = {"colour": choice(colours), 
+                    "hanging": {"colour": choice(colours), "style": choice(styles)}, 
+                    "lamp": {"colour": choice(colours), "style": choice(styles)},
+                    "tat": {"colour": choice(colours), "style": choice(styles)},
+                    "top": False,
+                    "left": True
+                    }
 
 
 #Create Root Window
@@ -35,6 +69,10 @@ tk.Label(root, image = lamp).place(x = int(WIDTH/3*1.8),y = (int(HEIGHT/2*0.9)))
 ort = Image.open('assets/Ort.jpg').resize((int(WIDTH/10), int(HEIGHT/10)))
 ort = ImageTk.PhotoImage(ort)
 tk.Label(root, image = ort).place(x = int(WIDTH/4*2.5),y = (int(HEIGHT/2*1.4)))
+
+
+#Rules
+
 
 
 

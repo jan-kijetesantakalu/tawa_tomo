@@ -77,6 +77,10 @@ def rule_compatability(rule1, rule2):
     if rule1 == rule2:
         return False
 
+    #If asking for same type of thing in same room
+    if rule1["room_top"] == rule2["room_top"] and rule1["room_top"] != None and rule1["type"] == rule2["type"] and rule1["type"] != None:
+        return False
+
     for item in ["room_top", "room_left", "type"]:
         if None in [rule1[item], rule2[item]]:
             continue
@@ -91,6 +95,8 @@ def rule_compatability(rule1, rule2):
 #make rules for objects
 rules = []
 num_rules = 6
+
+type_options = types*2
 
 while len(rules) < num_rules:
     obj_variety = 192
@@ -129,7 +135,11 @@ while len(rules) < num_rules:
                 rules.append(rule)
             continue
     
-    rule["type"] = choice(types+([None]))
+    if choice([True, True, None]):
+        rule["type"] = type_options.pop(type_options.index(choice(type_options)))
+    else:
+        rule["type"] = None
+
     if rule["type"] != None:
         obj_variety /= 3
         pos_variety /= 3
@@ -142,6 +152,8 @@ while len(rules) < num_rules:
                     comp = rule_compatability(rule, rul)
             if comp:
                 rules.append(rule)
+            else:
+                type_options.append(rule["type"])
             continue 
     
     rule["colour"] = choice(colours+([None]))
@@ -156,6 +168,8 @@ while len(rules) < num_rules:
                     comp = rule_compatability(rule, rul)
             if comp:
                 rules.append(rule)
+            else:
+                type_options.append(rule["type"])
             continue
     
     rule["style"] = choice(styles+([None]))
@@ -170,6 +184,8 @@ while len(rules) < num_rules:
                     comp = rule_compatability(rule, rul)
             if comp:
                 rules.append(rule)
+            else:
+                type_options.append(rule["type"])
             continue
     
     comp = True
@@ -179,7 +195,9 @@ while len(rules) < num_rules:
         else:
             comp = rule_compatability(rule, rul)
     if comp:
-        rules.append(rule)    
+        rules.append(rule)   
+    else:
+        type_options.append(rule["type"])
 
 
 

@@ -58,7 +58,7 @@ quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.des
 quit.place(x = int(WIDTH/2), y = 0) #Ugly and Hardcoded, fix later
 
 
-# Adding stoof
+# Adding temp images
 lava = Image.open('assets/lavaLamp.jpg').resize((int(WIDTH/10), int(HEIGHT/10)))
 lava = ImageTk.PhotoImage(lava)
 tk.Label(root, image = lava).place(x = int(WIDTH/4*1.35),y = (int(HEIGHT/2*0.9)))
@@ -81,13 +81,6 @@ def rule_compatability(rule1, rule2):
     if rule1["room_top"] == rule2["room_top"] and rule1["room_top"] != None and rule1["type"] == rule2["type"] and rule1["type"] != None:
         return False
 
-    for item in ["room_top", "room_left", "type"]:
-        if None in [rule1[item], rule2[item]]:
-            continue
-        elif rule1[item] != rule2[item]:
-            continue
-        else:
-            return False
     return True
 
  

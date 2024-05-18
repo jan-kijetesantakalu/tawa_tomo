@@ -74,6 +74,9 @@ tk.Label(root, image = ort).place(x = int(WIDTH/4*2.5),y = (int(HEIGHT/2*1.4)))
 
 # checks 2 rules against each other, returns TRUE if they don't contradict
 def rule_compatability(rule1, rule2):
+    if rule1 == rule2:
+        return False
+
     for item in ["room_top", "room_left", "type"]:
         if None in [rule1[item], rule2[item]]:
             continue
@@ -83,27 +86,7 @@ def rule_compatability(rule1, rule2):
             return False
     return True
 
-
-#Rules
-"""
-objectrule : {
-    obj = true
-	room_top : bool
-	room_left : bool
-	type : str | any
-	colour : str | any	
-	style : str | any
-
-}
-
-roomrule : {
-    obj = false
-    top : bool  | any
-	left : bool | any
-	colour : str (red/yellow/blue/green/warm/cold)
-}
-"""
-    
+ 
 
 #make rules for objects
 rules = []
@@ -202,19 +185,43 @@ while len(rules) < num_rules:
 
 # make rules for room colour
 walls = []
-num_wall_rules = 2
+num_wall_rules = 4
+wall_option_top = [True, True, False, False]
+wall_option_left = [True, True, False, False]
 
 while len(walls) < num_wall_rules:
     wall = {"obj": False, "top": None, "left": None, "colour": None}
+    valid = True
 
-    wall["top"] = choice([True, False, None])    
-    
-    if wall["top"] == None:
-        wall["left"] = choice([True, False])
+    if choice([True, True, False]):
+        # choose option from list for wall option top and remove it
+        wall["top"] = wall_option_top.pop(wall_option_top.index(choice(wall_option_top)))
     else:
-        wall["left"] = choice([True, False, None])
+        # set to None 1/3 of the time
+        wall["top"] = None
     
+
+    if choice([True, True, False]):
+        # choose option from list for wall option top and remove it
+        wall["left"] = wall_option_left.pop(wall_option_left.index(choice(wall_option_left)))
+    else:
+        # set to None 1/3 of the time
+        wall["left"] = None
+
     wall["colour"] = choice(colours)
+    
+    for wal in walls:
+        if wall["top"] == wal["top"] and wal["top"] != None and wall["left"] == wal["left"] and wal["left"] != None:
+            valid = False
+        
+        if wal == wall:
+            valid = False
+
+    if not valid:
+        wall_option_top.append(wal["top"])
+        wall_option_left.append(wal["left"])
+        continue
+    
     
     walls.append(wall)
 
@@ -222,7 +229,6 @@ rules += walls
 
 for rule in rules:
     print(rule)
-
 
 
 

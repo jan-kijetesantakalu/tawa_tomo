@@ -112,7 +112,7 @@ def create_rooms(rooms):
             xpos += 384*SCALE
 
         ypos = int(HEIGHT-(512*SCALE))
-        if rooms[room]["top"]:
+        if not rooms[room]["top"]:
             ypos += 256*SCALE
 
         rooms[room]["label"] = tk.Label(root, image = rooms[room]["img"])

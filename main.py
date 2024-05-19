@@ -88,9 +88,11 @@ def create_object(room, rooms, obj_type):
     except FileNotFoundError:
         print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
         rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
-    
+
+    rooms[room][obj_type]["img"] = rooms[room][obj_type]["img"].resize((int(rooms[room][obj_type]["img"].size[0]*2), int(rooms[room][obj_type]["img"].size[1]*2)), Image.NEAREST)
     #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
     Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room]["xpos"], rooms[room]["ypos"]), rooms[room][obj_type]["img"].convert("RGBA"))
+
 
 def create_rooms(rooms):
     for room in rooms.keys():

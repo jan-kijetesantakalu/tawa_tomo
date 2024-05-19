@@ -91,106 +91,67 @@ num_rules = 6
 
 type_options = types*2
 
-while len(rules) < num_rules:
-    obj_variety = 192
-    pos_variety = 12
-    target = 24
-    
-    rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None}
-    
-    rule["room_top"] = choice([True, False, None])
-    if rule["room_top"] != None:
-        obj_variety /= 2
-        pos_variety /=2
-        if obj_variety * pos_variety <= target:
-            comp = True
-            for rul in rules:
-                if not comp:
-                    break
-                else:
-                    comp = rule_compatability(rule, rul)
-            if comp:
-                rules.append(rule)
-            continue
-    
-    rule["room_left"] = choice([True, False, None])
-    if rule["room_left"] != None:
-        obj_variety /= 2
-        pos_variety /= 2
-        if obj_variety * pos_variety <= target: 
-            comp = True
-            for rul in rules:
-                if not comp:
-                    break
-                else:
-                    comp = rule_compatability(rule, rul)
-            if comp:
-                rules.append(rule)
-            continue
-    
-    if choice([True, True, None]):
-        rule["type"] = type_options.pop(type_options.index(choice(type_options)))
-    else:
-        rule["type"] = None
+class VarietyException(Exception):
+    pass
 
-    if rule["type"] != None:
-        obj_variety /= 3
-        pos_variety /= 3
-        if obj_variety * pos_variety <= target:    
-            comp = True
-            for rul in rules:
-                if not comp:
-                    break
-                else:
-                    comp = rule_compatability(rule, rul)
-            if comp:
-                rules.append(rule)
-            else:
-                type_options.append(rule["type"])
-            continue 
+while len(rules) < num_rules:
+    try:
+        obj_variety = 192
+        pos_variety = 12
+        target = 24
     
-    rule["colour"] = choice(colours+([None]))
-    if rule["colour"] != None:
-        obj_variety /= 4
-        if obj_variety * pos_variety <= target:
-            comp = True
-            for rul in rules:
-                if not comp:
-                    break
-                else:
-                    comp = rule_compatability(rule, rul)
-            if comp:
-                rules.append(rule)
-            else:
-                type_options.append(rule["type"])
-            continue
+        rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None}
     
-    rule["style"] = choice(styles+([None]))
-    if rule["style"] != None:
-        obj_variety /= 4
-        if obj_variety * pos_variety <= target:
-            comp = True
-            for rul in rules:
-                if not comp:
-                    break
-                else:
-                    comp = rule_compatability(rule, rul)
-            if comp:
-                rules.append(rule)
-            else:
-                type_options.append(rule["type"])
-            continue
-    
-    comp = True
-    for rul in rules:
-        if not comp:
-            break
+        rule["room_top"] = choice([True, False, None])
+        if rule["room_top"] != None:
+            obj_variety /= 2
+            pos_variety /=2
+            if obj_variety * pos_variety <= target:
+                raise(VarietyException)
+
+        rule["room_left"] = choice([True, False, None])
+        if rule["room_left"] != None:
+            obj_variety /= 2
+            pos_variety /= 2
+            if obj_variety * pos_variety <= target: 
+                raise(VarietyException) 
+
+        if choice([True, True, None]):
+            rule["type"] = type_options.pop(type_options.index(choice(type_options)))
         else:
-            comp = rule_compatability(rule, rul)
-    if comp:
-        rules.append(rule)   
-    else:
-        type_options.append(rule["type"])
+            rule["type"] = None
+        
+        if rule["type"] != None:
+            obj_variety /= 3
+            pos_variety /= 3
+            if obj_variety * pos_variety <= target:    
+                raise(VarietyException)
+
+        rule["colour"] = choice(colours+([None]))
+        if rule["colour"] != None:
+            obj_variety /= 4
+            if obj_variety * pos_variety <= target:
+                raise(VarietyException) 
+
+        rule["style"] = choice(styles+([None]))
+        if rule["style"] != None:
+            obj_variety /= 4
+            if obj_variety * pos_variety <= target:
+                raise(VarietyException)
+
+        raise(VarietyException)
+
+    except VarietyException:
+        comp = True
+        for rul in rules:
+            if not comp:
+                break
+            else:
+                comp = rule_compatability(rule, rul)
+        if comp:
+            rules.append(rule)   
+        elif rule["type"] != None:
+            type_options.append(rule["type"])
 
 
 
@@ -232,16 +193,13 @@ while len(walls) < num_wall_rules:
         wall_option_top.append(wal["top"])
         wall_option_left.append(wal["left"])
         continue
-    
-    
-    walls.append(wall)
+    else: 
+        walls.append(wall)
 
 rules += walls
 
 for rule in rules:
     print(rule)
-
-
 
 #Mainloop
 root.mainloop()

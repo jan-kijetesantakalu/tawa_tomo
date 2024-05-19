@@ -175,21 +175,21 @@ while len(rules) < num_rules:
     
         rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None}
     
-        rule["room_top"] = choice([True, False, None])
+        rule["room_top"] = choice([True, False, None, None])
         if rule["room_top"] != None:
             obj_variety /= 2
             pos_variety /=2
             if obj_variety * pos_variety <= target:
                 raise(VarietyException)
 
-        rule["room_left"] = choice([True, False, None])
+        rule["room_left"] = choice([True, False, None, None])
         if rule["room_left"] != None:
             obj_variety /= 2
             pos_variety /= 2
             if obj_variety * pos_variety <= target: 
                 raise(VarietyException) 
 
-        if choice([True, True, None]):
+        if choice([True, False]):
             rule["type"] = type_options.pop(type_options.index(choice(type_options)))
         else:
             rule["type"] = None
@@ -238,7 +238,7 @@ while len(walls) < num_wall_rules:
     wall = {"obj": False, "top": None, "left": None, "colour": None}
     valid = True
 
-    if choice([True, True, False]):
+    if choice([True, False]):
         # choose option from list for wall option top and remove it
         wall["top"] = wall_option_top.pop(wall_option_top.index(choice(wall_option_top)))
     else:
@@ -246,7 +246,7 @@ while len(walls) < num_wall_rules:
         wall["top"] = None
     
 
-    if choice([True, True, False]):
+    if choice([True, False]):
         # choose option from list for wall option top and remove it
         wall["left"] = wall_option_left.pop(wall_option_left.index(choice(wall_option_left)))
     else:

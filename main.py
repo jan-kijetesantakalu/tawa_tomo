@@ -1,14 +1,15 @@
 global WIDTH, HEIGHT, colours, styles #, SCALE
 
-types = ["lamp", "hanging", "tat"]
+types   = ["lamp", "hanging", "tat"]
 colours = ["red", "blue", "green", "yellow"]
-styles = ["modern", "antique", "retro", "unusual"]
+styles  = ["modern", "antique", "retro", "unusual"]
 
 import tkinter as tk
 from random import *
 from PIL import Image, ImageTk
 
 #Room definition (const)
+
 rooms = {"kitchen": {}, "bedroom": {}, "bathroom":{}, "lounge": {}} #Contains the rooms
 rooms["kitchen"]  = {"colour": choice(colours), 
                      "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
@@ -62,6 +63,7 @@ WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
 canvas = Image.new(mode= "RGBA", size=(1194,672))
 
+
 #Load and Place Background
 try:
     back_img = Image.open('assets/back.png') # If house.png does not open -
@@ -69,51 +71,68 @@ except FileNotFoundError:
     print(f'''Failed opening: assets/back.png''')
     back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
 
-Image.Image.paste(canvas, back_img, (0, 0))
+#Place background on canvas
 
+#Resize BG (BG is upsampled 2x to make art easier) with NN Resampling
+back_img = back_img.resize((1194, 672), Image.NEAREST)
+
+Image.Image.paste(canvas, back_img, (0, 0))
 
 #Paste Images from "rooms" list
 
+
 def create_object(room, rooms, obj_type):
+    #Open object or placeholder
     try:
         rooms[room][obj_type]["img"] = Image.open(f'''assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
     except FileNotFoundError:
         print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
         rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
     
+    #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
     Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room]["xpos"], rooms[room]["ypos"]), rooms[room][obj_type]["img"].convert("RGBA"))
 
 def create_rooms(rooms):
     for room in rooms.keys():
+        #Open room (or use placeholder):
         try:
             rooms[room]["img"]= Image.open(f'''assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
         except FileNotFoundError:
             print(f'''Failed opening: assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
-
             rooms[room]["img"] = Image.open(f'''assets/room_placeholder.png''')
 
-        rooms[room]["img"] = rooms[room]["img"].resize((384, 256))
+        #Resize Room (Rooms are upsampled 2x to make art easier) with Nearest Neighbour Resampling (best for pixel art)
+        rooms[room]["img"] = rooms[room]["img"].resize((384, 256), Image.NEAREST)
         
-        xpos = int(1194/2)
+
+        #Place in middle
+        xpos = 597
         if rooms[room]["left"]:
             xpos -= 384
-
+        
+        #Place on floor (or on other room)
         ypos = 160
         if not rooms[room]["top"]:
             ypos += 256
         
+        #Paste onto canvas (With transparency)
         Image.Image.paste(canvas, rooms[room]["img"], (xpos, ypos), rooms[room]["img"].convert("RGBA"))
 
         rooms[room]["xpos"] = xpos
         rooms[room]["ypos"] = ypos
 
-        for obj in ["hanging", "lamp", "tat"]:
+        #Create objects
+        for obj in types:
             create_object(room, rooms, obj)
+
+
+#Draw rooms and objects onto canvas
 create_rooms(rooms)
 
-#Draw Canvas
+#Convert Canvas to Tk Label and draw to screen
 
-canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT)))
+#Resample to screen size using NN
+canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
 
 canvas_label = tk.Label(root, image = canvas_tk).place(x = 0, y = 0)
 

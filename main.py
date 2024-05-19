@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, SCALE, colours, styles
+global WIDTH, HEIGHT, colours, styles #, SCALE
 
 types = ["lamp", "hanging", "tat"]
 colours = ["red", "blue", "green", "yellow"]
@@ -17,7 +17,6 @@ rooms["kitchen"]  = {"colour": choice(colours),
                     "top": False,
                     "left": False,
                     "img": None,
-                    "label": None,
                      "xpos": None,
                      "ypos": None
                     }
@@ -28,7 +27,6 @@ rooms["bedroom"]  = {"colour": choice(colours),
                     "top": True,
                     "left": False,
                     "img": None,
-                    "label": None,
                      "xpos": None,
                      "ypos": None
 
@@ -40,7 +38,6 @@ rooms["bathroom"]  = {"colour": choice(colours),
                     "top": True,
                     "left": True,
                     "img": None,
-                    "label": None,
                      "xpos": None,
                      "ypos": None
 
@@ -52,7 +49,6 @@ rooms["lounge"]  = {"colour": choice(colours),
                     "top": False,
                     "left": True,
                     "img": None,
-                    "label": None,
                      "xpos": None,
                      "ypos": None
                     
@@ -64,21 +60,19 @@ root = tk.Tk()
 root.attributes('-fullscreen', True)
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
-SCALE = HEIGHT/ (512+160) #Scale factor for objects, for rooms and house it is 2x
-
+canvas = Image.new(mode= "RGBA", size=(1194,672))
 
 #Load and Place Background
 try:
-    house_img = Image.open('assets/house.png') # If house.png does not open -
+    back_img = Image.open('assets/back.png') # If house.png does not open -
 except FileNotFoundError:
-    print(f'''Failed opening: assets/house.png''')
-    house_img = Image.open('assets/house_placeholder.png') # - Use placeholder
-    
-house_img = house_img.resize((int(768*SCALE), int(512*SCALE)))
+    print(f'''Failed opening: assets/back.png''')
+    back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
 
-house_img = ImageTk.PhotoImage(house_img)
-house = tk.Label(root, image = house_img).place(x=int((WIDTH-(768*SCALE))/2), y=int(HEIGHT-(512*SCALE)))
+Image.Image.paste(canvas, back_img, (0, 0))
 
+
+#Paste Images from "rooms" list
 
 def create_object(room, rooms, obj_type):
     try:
@@ -87,12 +81,7 @@ def create_object(room, rooms, obj_type):
         print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
         rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
     
-    rooms[room][obj_type]["img"] = rooms[room][obj_type]["img"].resize((int(32*SCALE), int(32*SCALE)))
-
-    rooms[room][obj_type]["img"] = ImageTk.PhotoImage(rooms[room][obj_type]["img"])
-    rooms[room][obj_type]["label"] = tk.Label(root, image = rooms[room][obj_type]["img"]) 
-    rooms[room][obj_type]["label"].place(x = rooms[room]["xpos"], y = rooms[room]["ypos"])
-    
+    Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room]["xpos"], rooms[room]["ypos"]), rooms[room][obj_type]["img"].convert("RGBA"))
 
 def create_rooms(rooms):
     for room in rooms.keys():
@@ -103,32 +92,40 @@ def create_rooms(rooms):
 
             rooms[room]["img"] = Image.open(f'''assets/room_placeholder.png''')
 
-        rooms[room]["img"] = rooms[room]["img"].resize((int(384*SCALE), int(256*SCALE)))
+        rooms[room]["img"] = rooms[room]["img"].resize((384, 256))
         
-        rooms[room]["img"] =  ImageTk.PhotoImage(rooms[room]["img"])
-        
-        xpos = int((WIDTH-(768*SCALE))/2)
-        if not rooms[room]["left"]:
-            xpos += 384*SCALE
+        xpos = int(1194/2)
+        if rooms[room]["left"]:
+            xpos -= 384
 
-        ypos = int(HEIGHT-(512*SCALE))
+        ypos = 160
         if not rooms[room]["top"]:
-            ypos += 256*SCALE
-
-        rooms[room]["label"] = tk.Label(root, image = rooms[room]["img"])
-        rooms[room]["label"].place(x = xpos, y = ypos)
+            ypos += 256
+        
+        Image.Image.paste(canvas, rooms[room]["img"], (xpos, ypos), rooms[room]["img"].convert("RGBA"))
 
         rooms[room]["xpos"] = xpos
         rooms[room]["ypos"] = ypos
 
         for obj in ["hanging", "lamp", "tat"]:
             create_object(room, rooms, obj)
-
 create_rooms(rooms)
+
+#Draw Canvas
+
+canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT)))
+
+canvas_label = tk.Label(root, image = canvas_tk).place(x = 0, y = 0)
+
 
 #Place Quit Button
 quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)
 quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
+
+
+
+
+#RULES
 
 # checks 2 rules against each other, returns TRUE if they don't contradict
 def rule_compatability(rule1, rule2):
@@ -140,7 +137,6 @@ def rule_compatability(rule1, rule2):
         return False
 
     return True
-
  
 
 #make rules for objects
@@ -258,6 +254,7 @@ rules += walls
 
 for rule in rules:
     print(rule)
+
 
 #Mainloop
 root.mainloop()

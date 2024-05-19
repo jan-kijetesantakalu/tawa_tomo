@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, colours, styles
+global WIDTH, HEIGHT, SCALE, colours, styles
 
 types = ["lamp", "hanging", "tat"]
 colours = ["red", "blue", "green", "yellow"]
@@ -11,32 +11,51 @@ from PIL import Image, ImageTk
 #Room definition (const)
 rooms = {"kitchen": {}, "bedroom": {}, "bathroom":{}, "lounge": {}} #Contains the rooms
 rooms["kitchen"]  = {"colour": choice(colours), 
-                    "hanging": {"colour": choice(colours), "style": choice(styles)}, 
-                    "lamp": {"colour": choice(colours), "style": choice(styles)},
-                    "tat": {"colour": choice(colours), "style": choice(styles)},
+                     "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
+                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+                     "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
                     "top": False,
-                    "left": False
+                    "left": False,
+                    "img": None,
+                    "label": None,
+                     "xpos": None,
+                     "ypos": None
                     }
 rooms["bedroom"]  = {"colour": choice(colours), 
-                    "hanging": {"colour": choice(colours), "style": choice(styles)}, 
-                    "lamp": {"colour": choice(colours), "style": choice(styles)},
-                    "tat": {"colour": choice(colours), "style": choice(styles)},
+                     "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
+                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+                     "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
                     "top": True,
-                    "left": False
+                    "left": False,
+                    "img": None,
+                    "label": None,
+                     "xpos": None,
+                     "ypos": None
+
                     }
 rooms["bathroom"]  = {"colour": choice(colours), 
-                    "hanging": {"colour": choice(colours), "style": choice(styles)}, 
-                    "lamp": {"colour": choice(colours), "style": choice(styles)},
-                    "tat": {"colour": choice(colours), "style": choice(styles)},
+                     "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
+                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+                      "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
                     "top": True,
-                    "left": True 
+                    "left": True,
+                    "img": None,
+                    "label": None,
+                     "xpos": None,
+                     "ypos": None
+
                     }
 rooms["lounge"]  = {"colour": choice(colours), 
-                    "hanging": {"colour": choice(colours), "style": choice(styles)}, 
-                    "lamp": {"colour": choice(colours), "style": choice(styles)},
-                    "tat": {"colour": choice(colours), "style": choice(styles)},
+                     "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
+                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+                    "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
                     "top": False,
-                    "left": True
+                    "left": True,
+                    "img": None,
+                    "label": None,
+                     "xpos": None,
+                     "ypos": None
+                    
                     }
 
 
@@ -45,32 +64,71 @@ root = tk.Tk()
 root.attributes('-fullscreen', True)
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
+SCALE = HEIGHT/ (512+160) #Scale factor for objects, for rooms and house it is 2x
 
 
 #Load and Place Background
-img = Image.open('assets/back.jpg').resize((WIDTH, HEIGHT)) #TEMP Image (When real image is used white borders [should] disappear)
-img = ImageTk.PhotoImage(img)
-tk.Label(root, image = img).place(x=0, y=0)
+try:
+    house_img = Image.open('assets/house.png') # If house.png does not open -
+except FileNotFoundError:
+    print(f'''Failed opening: assets/house.png''')
+    house_img = Image.open('assets/house_placeholder.png') # - Use placeholder
+    
+house_img = house_img.resize((int(768*SCALE), int(512*SCALE)))
 
+house_img = ImageTk.PhotoImage(house_img)
+house = tk.Label(root, image = house_img).place(x=int((WIDTH-(768*SCALE))/2), y=int(HEIGHT-(512*SCALE)))
+
+
+def create_object(room, rooms, obj_type):
+    try:
+        rooms[room][obj_type]["img"] = Image.open(f'''assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
+    except FileNotFoundError:
+        print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
+        rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
+    
+    rooms[room][obj_type]["img"] = rooms[room][obj_type]["img"].resize((int(32*SCALE), int(32*SCALE)))
+
+    rooms[room][obj_type]["img"] = ImageTk.PhotoImage(rooms[room][obj_type]["img"])
+    rooms[room][obj_type]["label"] = tk.Label(root, image = rooms[room][obj_type]["img"]) 
+    rooms[room][obj_type]["label"].place(x = rooms[room]["xpos"], y = rooms[room]["ypos"])
+    
+
+def create_rooms(rooms):
+    for room in rooms.keys():
+        try:
+            rooms[room]["img"]= Image.open(f'''assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
+        except FileNotFoundError:
+            print(f'''Failed opening: assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
+
+            rooms[room]["img"] = Image.open(f'''assets/room_placeholder.png''')
+
+        rooms[room]["img"] = rooms[room]["img"].resize((int(384*SCALE), int(256*SCALE)))
+        
+        rooms[room]["img"] =  ImageTk.PhotoImage(rooms[room]["img"])
+        
+        xpos = int((WIDTH-(768*SCALE))/2)
+        if not rooms[room]["left"]:
+            xpos += 384*SCALE
+
+        ypos = int(HEIGHT-(512*SCALE))
+        if rooms[room]["top"]:
+            ypos += 256*SCALE
+
+        rooms[room]["label"] = tk.Label(root, image = rooms[room]["img"])
+        rooms[room]["label"].place(x = xpos, y = ypos)
+
+        rooms[room]["xpos"] = xpos
+        rooms[room]["ypos"] = ypos
+
+        for obj in ["hanging", "lamp", "tat"]:
+            create_object(room, rooms, obj)
+
+create_rooms(rooms)
 
 #Place Quit Button
 quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)
-quit.place(x = int(WIDTH/2), y = 0) #Ugly and Hardcoded, fix later
-
-
-# Adding temp images
-lava = Image.open('assets/lavaLamp.jpg').resize((int(WIDTH/10), int(HEIGHT/10)))
-lava = ImageTk.PhotoImage(lava)
-tk.Label(root, image = lava).place(x = int(WIDTH/4*1.35),y = (int(HEIGHT/2*0.9)))
-
-lamp = Image.open('assets/lamp.jpg').resize((int(WIDTH/10), int(HEIGHT/10)))
-lamp = ImageTk.PhotoImage(lamp)
-tk.Label(root, image = lamp).place(x = int(WIDTH/3*1.8),y = (int(HEIGHT/2*0.9)))
-
-ort = Image.open('assets/Ort.jpg').resize((int(WIDTH/10), int(HEIGHT/10)))
-ort = ImageTk.PhotoImage(ort)
-tk.Label(root, image = ort).place(x = int(WIDTH/4*2.5),y = (int(HEIGHT/2*1.4)))
-
+quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
 
 # checks 2 rules against each other, returns TRUE if they don't contradict
 def rule_compatability(rule1, rule2):

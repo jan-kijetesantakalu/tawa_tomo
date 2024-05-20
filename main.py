@@ -61,7 +61,7 @@ root = tk.Tk()
 root.attributes('-fullscreen', True)
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
-canvas = Image.new(mode= "RGBA", size=(1194,672))
+canvas = Image.new(mode= "RGBA", size=(596,336))
 
 
 #Load and Place Background
@@ -73,8 +73,7 @@ except FileNotFoundError:
 
 #Place background on canvas
 
-#Resize BG (BG is upsampled 2x to make art easier) with NN Resampling
-back_img = back_img.resize((1194, 672), Image.NEAREST)
+back_img = back_img.resize((596, 336), Image.NEAREST)
 
 Image.Image.paste(canvas, back_img, (0, 0))
 
@@ -89,7 +88,6 @@ def create_object(room, rooms, obj_type):
         print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
         rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
 
-    rooms[room][obj_type]["img"] = rooms[room][obj_type]["img"].resize((int(rooms[room][obj_type]["img"].size[0]*2), int(rooms[room][obj_type]["img"].size[1]*2)), Image.NEAREST)
     #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
     Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room]["xpos"], rooms[room]["ypos"]), rooms[room][obj_type]["img"].convert("RGBA"))
 
@@ -104,18 +102,18 @@ def create_rooms(rooms):
             rooms[room]["img"] = Image.open(f'''assets/room_placeholder.png''')
 
         #Resize Room (Rooms are upsampled 2x to make art easier) with Nearest Neighbour Resampling (best for pixel art)
-        rooms[room]["img"] = rooms[room]["img"].resize((384, 256), Image.NEAREST)
+        rooms[room]["img"] = rooms[room]["img"].resize((192, 128), Image.NEAREST)
         
 
         #Place in middle
-        xpos = 597
+        xpos = 298
         if rooms[room]["left"]:
-            xpos -= 384
+            xpos -= 192
         
         #Place on floor (or on other room)
-        ypos = 160
+        ypos = 80
         if not rooms[room]["top"]:
-            ypos += 256
+            ypos += 128
         
         #Paste onto canvas (With transparency)
         Image.Image.paste(canvas, rooms[room]["img"], (xpos, ypos), rooms[room]["img"].convert("RGBA"))

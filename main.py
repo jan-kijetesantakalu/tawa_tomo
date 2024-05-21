@@ -284,8 +284,8 @@ while len(walls) < num_wall_rules:
             valid = False
 
     if not valid:
-        wall_option_top.append(wal["top"])
-        wall_option_left.append(wal["left"])
+        wall_option_top.append(wall["top"])
+        wall_option_left.append(wall["left"])
         continue
     else: 
         walls.append(wall)

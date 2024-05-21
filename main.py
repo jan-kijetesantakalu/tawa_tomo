@@ -15,9 +15,9 @@ rooms = {"kitchen": {}, "bedroom": {}, "bathroom":{}, "lounge": {}} #Contains th
 rooms["kitchen"]  = {
         "colour": choice(colours), 
                      
-        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
-        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
-        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 71, "ypos": 59}, 
+        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 39, "ypos": 83},
+        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 143, "ypos": 83},
                     
         "top": False,
         "left": False,

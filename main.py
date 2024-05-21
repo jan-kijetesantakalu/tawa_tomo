@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, colours, styles #, SCALE
+global WIDTH, HEIGHT, colours, styles, types #, SCALE
 
 types   = ["lamp", "hanging", "tat"]
 colours = ["red", "blue", "green", "yellow"]
@@ -8,60 +8,80 @@ import tkinter as tk
 from random import *
 from PIL import Image, ImageTk
 
-#Room definition (const)
+#Initial Room Definition
 
 rooms = {"kitchen": {}, "bedroom": {}, "bathroom":{}, "lounge": {}} #Contains the rooms
-rooms["kitchen"]  = {"colour": choice(colours), 
-                     "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
-                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
-                     "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
-                    "top": False,
-                    "left": False,
-                    "img": None,
-                     "xpos": None,
-                     "ypos": None
-                    }
-rooms["bedroom"]  = {"colour": choice(colours), 
-                    "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 171, "ypos": 67}, 
-                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 115, "ypos": 107},
-                     "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 77, "ypos": 95},
-                    "top": True,
-                    "left": False,
-                    "img": None,
-                     "xpos": None,
-                     "ypos": None
 
-                    }
-rooms["bathroom"]  = {"colour": choice(colours), 
-                    "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":55, "ypos":87}, 
-                    "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":183, "ypos":71},
-                    "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":103, "ypos":123},
-                    "top": True,
-                    "left": True,
-                    "img": None,
-                     "xpos": None,
-                     "ypos": None
-
-                    }
-rooms["lounge"]  = {"colour": choice(colours), 
-                     "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
-                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
-                    "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
-                    "top": False,
-                    "left": True,
-                    "img": None,
-                     "xpos": None,
-                     "ypos": None
+rooms["kitchen"]  = {
+        "colour": choice(colours), 
+                     
+        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
+        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
                     
-                    }
+        "top": False,
+        "left": False,
+                    
+        "img": None,
+        "xpos": None,
+        "ypos": None
+}
 
+rooms["bedroom"]  = {
+        "colour": choice(colours), 
+        
+        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 171, "ypos": 67}, 
+        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 115, "ypos": 107},
+        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 77, "ypos": 95},
+                    
+        "top": True,
+        "left": False,
+                    
+        "img": None,
+        "xpos": None,
+        "ypos": None
+}
+
+rooms["bathroom"]  = {
+        "colour": choice(colours), 
+                    
+        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":55, "ypos":87}, 
+        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":183, "ypos":71},
+        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":103, "ypos":123},
+        
+        "top": True,
+        "left": True,
+                    
+        "img": None,
+        "xpos": None,
+        "ypos": None
+}
+
+rooms["lounge"]  = {
+        "colour": choice(colours), 
+        
+        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
+        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+                    
+        "top": False,
+        "left": True,
+                    
+        "img": None,
+        "xpos": None,
+        "ypos": None            
+}
 
 #Create Root Window
 root = tk.Tk()
 root.attributes('-fullscreen', True)
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
+
+#Initialise Canvas
+
 canvas = Image.new(mode= "RGBA", size=(596,336))
+
 
 #Load and Place Background
 try:
@@ -73,10 +93,8 @@ except FileNotFoundError:
 #Place background on canvas
 
 back_img = back_img.resize((596, 336), Image.NEAREST)
-
 Image.Image.paste(canvas, back_img, (0, 0))
 
-#Paste Images from "rooms" list
 
 
 def create_object(room, rooms, obj_type):
@@ -92,6 +110,7 @@ def create_object(room, rooms, obj_type):
         Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0]+1, rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]+1), rooms[room][obj_type]["img"].convert("RGBA"))
     except KeyError:
         pass
+
 
 def create_rooms(rooms):
     for room in rooms.keys():
@@ -135,7 +154,6 @@ def create_rooms(rooms):
 create_rooms(rooms)
 
 #Convert Canvas to Tk Label and draw to screen
-
 #Resample to screen size using NN
 canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
 
@@ -145,8 +163,6 @@ canvas_label = tk.Label(root, image = canvas_tk).place(x = 0, y = 0)
 #Place Quit Button
 quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)
 quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
-
-
 
 
 #RULES

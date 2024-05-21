@@ -45,8 +45,8 @@ rooms["bedroom"]  = {
 rooms["bathroom"]  = {
         "colour": choice(colours), 
                     
-        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":55, "ypos":87}, 
-        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":183, "ypos":71},
+        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":51, "ypos":77}, 
+        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":183, "ypos":67},
         "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":103, "ypos":123},
         
         "top": True,

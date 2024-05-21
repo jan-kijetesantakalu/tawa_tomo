@@ -67,7 +67,7 @@ canvas = Image.new(mode= "RGBA", size=(596,336))
 try:
     back_img = Image.open('assets/back.png') # If house.png does not open -
 except FileNotFoundError:
-    print(f'''Failed opening: assets/back.png''')
+    print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
     back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
 
 #Place background on canvas
@@ -84,7 +84,7 @@ def create_object(room, rooms, obj_type):
     try:
         rooms[room][obj_type]["img"] = Image.open(f'''assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
     except FileNotFoundError:
-        print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
+        print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png falling back to assets/placeholder.png''')
         rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
 
     #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
@@ -100,10 +100,10 @@ def create_rooms(rooms):
             rooms[room]["img"]= Image.open(f'''assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
         except FileNotFoundError:
             try:
-                print(f'''Failed opening: assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
+                print(f'''Failed opening: assets/{room}/room/{room}_{rooms[room]["colour"]} falling back to assets/{room}/room/{room}_placeholder.png''')
                 rooms[room]["img"] = Image.open(f'''assets/{room}/room/{room}_placeholder.png''')
             except FileNotFoundError:
-                print(f'''Failed opening: assets/{room}/room/{room}_placeholder.png''') 
+                print(f'''Failed opening: assets/{room}/room/{room}_placeholder.png falling back to assets/room_placeholder.png''') 
                 rooms[room]["img"] = Image.open(f'''assets/room_placeholder.png''')
 
         #Resize Room (Rooms are upsampled 2x to make art easier) with Nearest Neighbour Resampling (best for pixel art)

@@ -22,7 +22,7 @@ rooms["kitchen"]  = {"colour": choice(colours),
                      "ypos": None
                     }
 rooms["bedroom"]  = {"colour": choice(colours), 
-        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 171, "ypos": 67}, 
+                    "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 171, "ypos": 67}, 
                      "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 115, "ypos": 107},
                      "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 77, "ypos": 95},
                     "top": True,
@@ -33,9 +33,9 @@ rooms["bedroom"]  = {"colour": choice(colours),
 
                     }
 rooms["bathroom"]  = {"colour": choice(colours), 
-                     "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
-                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
-                      "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+                    "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":55, "ypos":87}, 
+                    "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":183, "ypos":71},
+                    "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":103, "ypos":123},
                     "top": True,
                     "left": True,
                     "img": None,
@@ -63,7 +63,6 @@ WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
 canvas = Image.new(mode= "RGBA", size=(596,336))
 
-
 #Load and Place Background
 try:
     back_img = Image.open('assets/back.png') # If house.png does not open -
@@ -90,7 +89,7 @@ def create_object(room, rooms, obj_type):
 
     #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
     try:
-        Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0], rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]), rooms[room][obj_type]["img"].convert("RGBA"))
+        Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0]+1, rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]+1), rooms[room][obj_type]["img"].convert("RGBA"))
     except KeyError:
         pass
 

@@ -22,9 +22,9 @@ rooms["kitchen"]  = {"colour": choice(colours),
                      "ypos": None
                     }
 rooms["bedroom"]  = {"colour": choice(colours), 
-                     "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None}, 
-                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
-                     "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None},
+        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 171, "ypos": 67}, 
+                     "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 115, "ypos": 107},
+                     "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 77, "ypos": 95},
                     "top": True,
                     "left": False,
                     "img": None,
@@ -89,8 +89,10 @@ def create_object(room, rooms, obj_type):
         rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
 
     #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
-    Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room]["xpos"], rooms[room]["ypos"]), rooms[room][obj_type]["img"].convert("RGBA"))
-
+    try:
+        Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0], rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]), rooms[room][obj_type]["img"].convert("RGBA"))
+    except KeyError:
+        pass
 
 def create_rooms(rooms):
     for room in rooms.keys():

@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, colours, styles, types #, SCALE
+global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk #, SCALE
 
 types   = ["lamp", "hanging", "tat"]
 colours = ["red", "blue", "green", "yellow"]
@@ -83,17 +83,6 @@ HEIGHT = root.winfo_screenheight()
 canvas = Image.new(mode= "RGBA", size=(596,336))
 
 
-#Load and Place Background
-try:
-    back_img = Image.open('assets/back.png') # If house.png does not open -
-except FileNotFoundError:
-    print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
-    back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
-
-#Place background on canvas
-
-back_img = back_img.resize((596, 336), Image.NEAREST)
-Image.Image.paste(canvas, back_img, (0, 0))
 
 
 
@@ -149,21 +138,41 @@ def create_rooms(rooms):
         for obj in types:
             create_object(room, rooms, obj)
 
-
-#Draw rooms and objects onto canvas
-create_rooms(rooms)
-
-#Convert Canvas to Tk Label and draw to screen
-#Resample to screen size using NN
+canvas_label = tk.Label()
 canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+quit = tk.Button()
 
-canvas_label = tk.Label(root, image = canvas_tk).place(x = 0, y = 0)
+def draw_canvas():
+    global canvas, canvas_label, canvas_tk
+    #Load and Place Background
+    try:
+        back_img = Image.open('assets/back.png') # If house.png does not open -
+    except FileNotFoundError:
+        print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
+        back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
+
+    #Place background on canvas
+
+    back_img = back_img.resize((596, 336), Image.NEAREST)
+    Image.Image.paste(canvas, back_img, (0, 0))
 
 
-#Place Quit Button
-quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)
-quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
+    #Draw rooms and objects onto canvas
+    create_rooms(rooms)
 
+    #Convert Canvas to Tk Label and draw to screen
+    #Resample to screen size using NN
+    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+
+    canvas_label = tk.Label(root, image = canvas_tk).place(x = 0, y = 0)
+
+    #Place Quit Button
+    quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)
+    quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
+
+draw_canvas()
+
+draw_canvas()
 
 #RULES
 

@@ -16,8 +16,8 @@ rooms["kitchen"]  = {
         "colour": choice(colours), 
                      
         "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 71, "ypos": 59}, 
-        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 39, "ypos": 83},
-        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 143, "ypos": 83},
+        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 39, "ypos": 86},
+        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 143, "ypos": 86},
                     
         "top": False,
         "left": False,

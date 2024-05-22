@@ -108,10 +108,10 @@ def create_rooms(rooms):
             rooms[room]["img"]= Image.open(f'''assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
         except FileNotFoundError:
             try:
-                print(f'''Failed opening: assets/{room}/room/{room}_{rooms[room]["colour"]} falling back to assets/{room}/room/{room}_placeholder.png''')
-                rooms[room]["img"] = Image.open(f'''assets/{room}/room/{room}_placeholder.png''')
+                print(f'''Failed opening: assets/{room}/room/{room}_{rooms[room]["colour"]} falling back to assets/{room}/room/{room}_blank.png''')
+                rooms[room]["img"] = Image.open(f'''assets/{room}/room/{room}_blank.png''')
             except FileNotFoundError:
-                print(f'''Failed opening: assets/{room}/room/{room}_placeholder.png falling back to assets/room_placeholder.png''') 
+                print(f'''Failed opening: assets/{room}/room/{room}_placeholder.png falling back to assets/room_blank.png''') 
                 rooms[room]["img"] = Image.open(f'''assets/room_placeholder.png''')
 
         #Resize Room (Rooms are upsampled 2x to make art easier) with Nearest Neighbour Resampling (best for pixel art)

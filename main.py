@@ -1,8 +1,15 @@
-global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk #, SCALE
+global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw #, SCALE
 
+
+redraw = True
 types   = ["lamp", "hanging", "tat"]
 colours = ["red", "blue", "green", "yellow"]
 styles  = ["modern", "antique", "retro", "unusual"]
+cursor_pos = 0
+cursor_order = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat"), ("bathroom", "lamp"), 
+                ("bedroom", "wall"), ("bedroom", "tat"), ("bedroom", "lamp"), ("bedroom", "hanging"),
+                ("lounge", "wall"), ("lounge", "tat"), ("lounge", "hanging"), ("lounge", "lamp"),
+                ("kitchen", "wall"), ("kitchen", "lamp"), ("kitchen", "hanging"), ("kitchen", "tat")]
 
 import tkinter as tk
 from random import *
@@ -28,7 +35,7 @@ rooms["kitchen"]  = {
 }
 
 rooms["bedroom"]  = {
-        "colour": choice(colours), 
+       "colour": choice(colours), 
         
         "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 171, "ypos": 67}, 
         "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 115, "ypos": 107},
@@ -75,6 +82,25 @@ rooms["lounge"]  = {
 #Create Root Window
 root = tk.Tk()
 root.attributes('-fullscreen', True)
+
+def cursor_next(e):
+    global cursor_pos, redraw
+    cursor_pos += 1
+    cursor_pos %= 16
+    print(cursor_pos)
+    redraw = True
+
+def cursor_prev(e):
+    global cursor_pos, redraw
+    cursor_pos -= 1
+    cursor_pos %= 16
+    print(cursor_pos)
+    redraw = True
+
+
+root.bind("<Right>", cursor_next)
+root.bind("<Left>", cursor_prev)
+
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
 
@@ -143,7 +169,8 @@ canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
 quit = tk.Button()
 
 def draw_canvas():
-    global canvas, canvas_label, canvas_tk
+    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos
+    
     #Load and Place Background
     try:
         back_img = Image.open('assets/back.png') # If house.png does not open -
@@ -159,7 +186,35 @@ def draw_canvas():
 
     #Draw rooms and objects onto canvas
     create_rooms(rooms)
+    
+    #Draw cursor
+    cursor_loc = cursor_order[cursor_pos]
+    cursor_room = rooms[cursor_loc[0]]
+    cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
 
+    if cursor_obj["img"].size == (32,32):
+        cursor_img = Image.open("assets/cursor_square.png")
+        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
+        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
+
+    elif cursor_obj["img"].size == (32,64):
+        cursor_img = Image.open("assets/cursor_tall.png")
+        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
+        cur_ypos = cursor_obj["ypos"]-63+cursor_room["ypos"]
+
+    elif cursor_obj["img"].size == (64,32):
+        cursor_img = Image.open("assets/cursor_wide.png")
+        cur_xpos = cursor_obj["xpos"]-63+cursor_room["xpos"]
+        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
+    
+    else:
+        cursor_img = Image.open("assets/cursor_room.png")
+        cur_xpos = cursor_obj["xpos"]
+        cur_ypos = cursor_obj["ypos"]
+
+    
+    Image.Image.paste(canvas, cursor_img, (cur_xpos,cur_ypos), cursor_img.convert("RGBA"))
+    
     #Convert Canvas to Tk Label and draw to screen
     #Resample to screen size using NN
     canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
@@ -169,10 +224,9 @@ def draw_canvas():
     #Place Quit Button
     quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)
     quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
-
+    
 draw_canvas()
 
-draw_canvas()
 
 #RULES
 
@@ -267,7 +321,7 @@ wall_option_left = [True, True, False, False]
 while len(walls) < num_wall_rules:
     wall = {"obj": False, "top": None, "left": None, "colour": None}
     valid = True
-
+    
     if choice([True, False]):
         # choose option from list for wall option top and remove it
         wall["top"] = wall_option_top.pop(wall_option_top.index(choice(wall_option_top)))
@@ -284,7 +338,7 @@ while len(walls) < num_wall_rules:
         wall["left"] = None
 
     wall["colour"] = choice(colours)
-    
+     
     for wal in walls:
         if wall["top"] == wal["top"] and wal["top"] != None and wall["left"] == wal["left"] and wal["left"] != None:
             valid = False
@@ -306,4 +360,14 @@ for rule in rules:
 
 
 #Mainloop
-root.mainloop()
+x = 0
+while root.state() == 'normal':
+    root.update_idletasks()
+    root.update()
+    
+    if redraw:
+        print(f"Update {x}")
+        draw_canvas()
+        redraw = False
+
+    x += 1

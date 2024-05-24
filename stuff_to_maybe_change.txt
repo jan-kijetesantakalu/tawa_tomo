@@ -1,6 +1,9 @@
 Be-H-M
 Be-L-M
 Be-R-light?
+Be-R-bed (trans)
 Be-T-R
 K-H-U
+K-H-R
+K-R-fridge (dark)
 (L-H-A)

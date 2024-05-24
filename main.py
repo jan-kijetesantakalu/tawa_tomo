@@ -289,7 +289,32 @@ for rule in rules:
 # Evaluate rule
 def evaluate_rule(rooms, rule):
     if rule["obj"]:
-        pass
+        best_score = 0
+        for room in rooms:
+            if not (rule["room_top"] == rooms[room]["top"] or rule["room_top"] == None):
+                continue
+
+            if not (rule["room_left"] == rooms[room]["left"] or rule["room_left"] == None):
+                continue
+
+            for obj_type in types:
+                score = 1
+                if not (rule["type"] == obj_type or rule["type"] == None): 
+                    score -= (1/3)
+
+                if not (rule["style"] == rooms[room][obj_type]["style"] or rule["style"] == None):
+                    score -= (1/3)
+ 
+                if not (rule["colour"] == rooms[room][obj_type]["colour"] or rule["style"] == None):
+                    score -= (1/3)
+                
+                if score > best_score:
+                    best_score = score
+                    
+
+        return best_score
+
+
 
     else:
         for room in rooms:
@@ -302,9 +327,9 @@ def evaluate_rule(rooms, rule):
             if not (rule["colour"] == rooms[room]["colour"]):
                 continue
 
-            return True
+            return 1
 
-        return False
+        return 0
 
 
 def create_object(room, rooms, obj_type):

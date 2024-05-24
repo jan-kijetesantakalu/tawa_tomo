@@ -263,6 +263,11 @@ def draw_canvas():
     
     Image.Image.paste(canvas, cursor_img, (cur_xpos,cur_ypos), cursor_img.convert("RGBA"))
     
+    
+    to_do = Image.open("assets/to_do.png")
+    Image.Image.paste(canvas, to_do, (484,0), to_do.convert("RGBA"))
+    
+    
     #Convert Canvas to Tk Label and draw to screen
     #Resample to screen size using NN
     canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))

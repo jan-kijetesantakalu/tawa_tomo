@@ -152,148 +152,21 @@ elif WIDTH/HEIGHT - 16/9 < 0.2:
 
 
 #Initialise Canvas
-
 canvas = Image.new(mode= "RGBA", size=(596,336))
-
-
-
-
-
-def create_object(room, rooms, obj_type):
-    #Open object or placeholder
-    try:
-        rooms[room][obj_type]["img"] = Image.open(f'''assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
-    except FileNotFoundError:
-        print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png falling back to assets/placeholder.png''')
-        rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
-
-    #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
-    try:
-        Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0]+1, rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]+1), rooms[room][obj_type]["img"].convert("RGBA"))
-    except KeyError:
-        pass
-
-
-def create_rooms(rooms):
-    for room in rooms.keys():
-        #Open room (or use placeholder):
-        try:
-            rooms[room]["img"]= Image.open(f'''assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
-        except FileNotFoundError:
-            try:
-                print(f'''Failed opening: assets/{room}/room/{room}_{rooms[room]["colour"]} falling back to assets/{room}/room/{room}_blank.png''')
-                rooms[room]["img"] = Image.open(f'''assets/{room}/room/{room}_blank.png''')
-            except FileNotFoundError:
-                print(f'''Failed opening: assets/{room}/room/{room}_placeholder.png falling back to assets/room_blank.png''') 
-                rooms[room]["img"] = Image.open(f'''assets/room_placeholder.png''')
-
-        #Resize Room (Rooms are upsampled 2x to make art easier) with Nearest Neighbour Resampling (best for pixel art)
-        rooms[room]["img"] = rooms[room]["img"].resize((192, 128), Image.NEAREST)
-        
-
-        #Place in middle
-        xpos = 298
-        if rooms[room]["left"]:
-            xpos -= 192
-        
-        #Place on floor (or on other room)
-        ypos = 80
-        if not rooms[room]["top"]:
-            ypos += 128
-        
-        #Paste onto canvas (With transparency)
-        Image.Image.paste(canvas, rooms[room]["img"], (xpos, ypos), rooms[room]["img"].convert("RGBA"))
-
-        rooms[room]["xpos"] = xpos
-        rooms[room]["ypos"] = ypos
-
-        #Create objects
-        for obj in types:
-            create_object(room, rooms, obj)
-
-canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-canvas_label = tk.Label()
-canvas_label.place(x=0, y=0)
-quit = tk.Button()
-
-def draw_canvas():
-    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos
-    
-    #Load and Place Background
-    try:
-        back_img = Image.open('assets/back.png') # If house.png does not open -
-    except FileNotFoundError:
-        print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
-        back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
-
-    #Place background on canvas
-
-    back_img = back_img.resize((596, 336), Image.NEAREST)
-    Image.Image.paste(canvas, back_img, (0, 0))
-
-
-    #Draw rooms and objects onto canvas
-    create_rooms(rooms)
-    
-    #Draw cursor
-    cursor_loc = cursor_order[cursor_pos]
-    cursor_room = rooms[cursor_loc[0]]
-    cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
-
-    if cursor_obj["img"].size == (32,32):
-        cursor_img = Image.open("assets/cursor_square.png")
-        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
-        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
-
-    elif cursor_obj["img"].size == (32,64):
-        cursor_img = Image.open("assets/cursor_tall.png")
-        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
-        cur_ypos = cursor_obj["ypos"]-63+cursor_room["ypos"]
-
-    elif cursor_obj["img"].size == (64,32):
-        cursor_img = Image.open("assets/cursor_wide.png")
-        cur_xpos = cursor_obj["xpos"]-63+cursor_room["xpos"]
-        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
-    
-    else:
-        cursor_img = Image.open("assets/cursor_room.png")
-        cur_xpos = cursor_obj["xpos"]
-        cur_ypos = cursor_obj["ypos"]
-
-    
-    Image.Image.paste(canvas, cursor_img, (cur_xpos,cur_ypos), cursor_img.convert("RGBA"))
-    
-    
-    to_do = Image.open("assets/to_do.png")
-    Image.Image.paste(canvas, to_do, (484,0), to_do.convert("RGBA"))
-    
-    
-    #Convert Canvas to Tk Label and draw to screen
-    #Resample to screen size using NN
-    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-
-    canvas_label.config(image = canvas_tk)
-
-    #Place Quit Button
-    quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)
-    quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
-    
-draw_canvas()
 
 
 #RULES
 
-# checks 2 rules against each other, returns TRUE if they don't contradict
+#check 2 rules are compatable 
 def rule_compatability(rule1, rule2):
     if rule1 == rule2:
         return False
-
-    #If asking for same type of thing in same room
+    
     if rule1["room_top"] == rule2["room_top"] and rule1["room_top"] != None and rule1["type"] == rule2["type"] and rule1["type"] != None:
         return False
 
     return True
- 
+
 
 #make rules for objects
 rules = []
@@ -410,6 +283,155 @@ rules += walls
 
 for rule in rules:
     print(rule)
+
+
+
+# Evaluate rule
+def evaluate_rule(rooms, rule):
+    if rule["obj"]:
+        pass
+
+    else:
+        for room in rooms:
+            if not (rule["top"] == rooms[room]["top"] or rule["top"] == None):
+                continue
+
+            if not (rule["left"] == rooms[room]["left"] or rule["left"] == None):
+                continue
+
+            if not (rule["colour"] == rooms[room]["colour"]):
+                continue
+
+            return True
+
+        return False
+
+
+def create_object(room, rooms, obj_type):
+    #Open object or placeholder
+    try:
+        rooms[room][obj_type]["img"] = Image.open(f'''assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
+    except FileNotFoundError:
+        print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png falling back to assets/placeholder.png''')
+        rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
+
+    #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
+    try:
+        Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0]+1, rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]+1), rooms[room][obj_type]["img"].convert("RGBA"))
+    except KeyError:
+        pass
+
+
+def create_rooms(rooms):
+    for room in rooms.keys():
+        #Open room (or use placeholder):
+        try:
+            rooms[room]["img"]= Image.open(f'''assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
+        except FileNotFoundError:
+            try:
+                print(f'''Failed opening: assets/{room}/room/{room}_{rooms[room]["colour"]} falling back to assets/{room}/room/{room}_blank.png''')
+                rooms[room]["img"] = Image.open(f'''assets/{room}/room/{room}_blank.png''')
+            except FileNotFoundError:
+                print(f'''Failed opening: assets/{room}/room/{room}_placeholder.png falling back to assets/room_blank.png''') 
+                rooms[room]["img"] = Image.open(f'''assets/room_placeholder.png''')
+
+        #Resize Room (Rooms are upsampled 2x to make art easier) with Nearest Neighbour Resampling (best for pixel art)
+        rooms[room]["img"] = rooms[room]["img"].resize((192, 128), Image.NEAREST)
+        
+
+        #Place in middle
+        xpos = 298
+        if rooms[room]["left"]:
+            xpos -= 192
+        
+        #Place on floor (or on other room)
+        ypos = 80
+        if not rooms[room]["top"]:
+            ypos += 128
+        
+        #Paste onto canvas (With transparency)
+        Image.Image.paste(canvas, rooms[room]["img"], (xpos, ypos), rooms[room]["img"].convert("RGBA"))
+
+        rooms[room]["xpos"] = xpos
+        rooms[room]["ypos"] = ypos
+
+        #Create objects
+        for obj in types:
+            create_object(room, rooms, obj)
+
+canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+canvas_label = tk.Label()
+canvas_label.place(x=0, y=0)
+quit = tk.Button()
+
+def draw_canvas():
+    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos
+    
+    #Load and Place Background
+    try:
+        back_img = Image.open('assets/back.png') # If house.png does not open -
+    except FileNotFoundError:
+        print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
+        back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
+
+    #Place background on canvas
+
+    back_img = back_img.resize((596, 336), Image.NEAREST)
+    Image.Image.paste(canvas, back_img, (0, 0))
+
+
+    #Draw rooms and objects onto canvas
+    create_rooms(rooms)
+    
+    #Draw cursor
+    cursor_loc = cursor_order[cursor_pos]
+    cursor_room = rooms[cursor_loc[0]]
+    cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
+
+    if cursor_obj["img"].size == (32,32):
+        cursor_img = Image.open("assets/cursor_square.png")
+        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
+        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
+
+    elif cursor_obj["img"].size == (32,64):
+        cursor_img = Image.open("assets/cursor_tall.png")
+        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
+        cur_ypos = cursor_obj["ypos"]-63+cursor_room["ypos"]
+
+    elif cursor_obj["img"].size == (64,32):
+        cursor_img = Image.open("assets/cursor_wide.png")
+        cur_xpos = cursor_obj["xpos"]-63+cursor_room["xpos"]
+        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
+    
+    else:
+        cursor_img = Image.open("assets/cursor_room.png")
+        cur_xpos = cursor_obj["xpos"]
+        cur_ypos = cursor_obj["ypos"]
+
+    
+    Image.Image.paste(canvas, cursor_img, (cur_xpos,cur_ypos), cursor_img.convert("RGBA"))
+    
+    
+    #draw to do list
+    to_do = Image.open("assets/to_do.png")
+    Image.Image.paste(canvas, to_do, (484,0), to_do.convert("RGBA"))
+    for rule in rules: 
+        print(rule, evaluate_rule(rooms, rule))
+
+    
+    #Convert Canvas to Tk Label and draw to screen
+    #Resample to screen size using NN
+    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+
+    canvas_label.config(image = canvas_tk)
+
+    #Place Quit Button
+    quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)
+    quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
+    
+draw_canvas()
+
+
 
 
 #Mainloop

@@ -164,8 +164,9 @@ def create_rooms(rooms):
         for obj in types:
             create_object(room, rooms, obj)
 
-canvas_label = tk.Label()
 canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+canvas_label = tk.Label()
+canvas_label.place(x=0, y=0)
 quit = tk.Button()
 
 def draw_canvas():
@@ -219,7 +220,7 @@ def draw_canvas():
     #Resample to screen size using NN
     canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
 
-    canvas_label = tk.Label(root, image = canvas_tk).place(x = 0, y = 0)
+    canvas_label.config(image = canvas_tk)
 
     #Place Quit Button
     quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)

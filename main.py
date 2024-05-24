@@ -87,19 +87,58 @@ def cursor_next(e):
     global cursor_pos, redraw
     cursor_pos += 1
     cursor_pos %= 16
-    print(cursor_pos)
     redraw = True
 
 def cursor_prev(e):
     global cursor_pos, redraw
     cursor_pos -= 1
     cursor_pos %= 16
-    print(cursor_pos)
     redraw = True
+
+def handle_keypress(e):
+    global cursor_pos, redraw
+    
+    cursor_loc = cursor_order[cursor_pos]
+    cursor_room = rooms[cursor_loc[0]]
+    cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
+    
+    if e.char.lower() == "a":
+        cursor_obj["colour"] = "red"
+    
+    elif e.char.lower() == "s":
+        cursor_obj["colour"] = "yellow"
+    
+    elif e.char.lower() == "d":
+        cursor_obj["colour"] = "green"
+
+    elif e.char.lower() == "f":
+        cursor_obj["colour"] = "blue"
+    
+
+    elif cursor_loc[1] != "wall":
+        if e.char.lower() == "z":
+            cursor_obj["style"] = "antique"
+
+        elif e.char.lower() == "x":
+            cursor_obj["style"] = "retro"
+
+        elif e.char.lower() == "c":
+            cursor_obj["style"] = "modern"
+
+        elif e.char.lower() == "v":
+            cursor_obj["style"] = "unusual"
+
+
+    redraw = True
+    
+
+    
 
 
 root.bind("<Right>", cursor_next)
 root.bind("<Left>", cursor_prev)
+root.bind("<KeyPress>", handle_keypress)
+
 
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()

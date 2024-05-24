@@ -143,6 +143,14 @@ root.bind("<KeyPress>", handle_keypress)
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
 
+if WIDTH/HEIGHT - 16/9 > 0.02:
+    #Screen is wider than expected
+    WIDTH = HEIGHT* 16/9
+elif WIDTH/HEIGHT - 16/9 < 0.2:
+    #Screen is taller than expected
+    HEIGHT = WIDTH * 9/16
+
+
 #Initialise Canvas
 
 canvas = Image.new(mode= "RGBA", size=(596,336))

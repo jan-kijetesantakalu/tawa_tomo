@@ -15,6 +15,8 @@ cursor_order = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat
 import tkinter as tk
 from random import *
 from PIL import Image, ImageTk
+from math import floor
+import glob
 
 #Initial Room Definition
 
@@ -313,7 +315,7 @@ def evaluate_rule(rooms, rule):
                 if score > best_score:
                     best_score = score
                     
-        return best_score
+        return round(floor(best_score*10)/10,1)
 
     else:
         for room in rooms:
@@ -382,6 +384,8 @@ def create_rooms(rooms):
         #Create objects
         for obj in types:
             create_object(room, rooms, obj)
+        
+
 
 canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
 canvas_label = tk.Label()
@@ -446,10 +450,23 @@ def draw_canvas():
     
     #draw to do list
     to_do = Image.open("assets/to_do.png")
-    Image.Image.paste(canvas, to_do, (484,0), to_do.convert("RGBA"))
-    for rule in rules: 
-        print(rule, evaluate_rule(rooms, rule))
+    n_smileys = len(glob.glob("assets/smileys/*.png"))
+    squiggle_y = 20
 
+    for rule in rules: 
+        squiggle = Image.open(choice(glob.glob("assets/squiggles/*.png")))
+        Image.Image.paste(to_do, squiggle, (11,squiggle_y), squiggle.convert("RGBA"))
+
+        rule_score = evaluate_rule(rooms, rule)
+        
+
+        smiley = Image.open(f"assets/smileys/smiley_{round(rule_score * (n_smileys-1))}.png")
+        Image.Image.paste(to_do, smiley, (11,squiggle_y), smiley.convert("RGBA"))
+
+        squiggle_y += 18
+
+
+    Image.Image.paste(canvas, to_do, (484,0), to_do.convert("RGBA"))
     
     #Convert Canvas to Tk Label and draw to screen
     #Resample to screen size using NN

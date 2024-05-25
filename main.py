@@ -487,15 +487,26 @@ def draw_canvas():
     
     #draw to do list
     to_do = Image.open("assets/to_do.png").convert("RGBA")
+    
+    stuff = Image.open("assets/to_do_stuff.png")
+    Image.Image.paste(to_do, stuff, (11,20), stuff.convert("RGBA"))
+    
     n_smileys = len(glob.glob("assets/smileys/*.png"))
-    squiggle_y = 20
+    squiggle_y = 38
+    
+    drawn_wall_label = False
 
     for rule in rules: 
+        if not rule["obj"] and not drawn_wall_label:
+            drawn_wall_label = True
+            walls = Image.open("assets/to_do_walls.png")
+            Image.Image.paste(to_do, walls, (11,squiggle_y), walls.convert("RGBA"))
+            squiggle_y += 18
+
         squiggle = Image.open(choice(glob.glob("assets/squiggles/*.png")))
         Image.Image.paste(to_do, squiggle, (11,squiggle_y), squiggle.convert("RGBA"))
 
         rule_score = evaluate_rule(rooms, rule)
-        
 
         smiley = Image.open(f"assets/smileys/smiley_{round(rule_score * (n_smileys-1))}.png")
         Image.Image.paste(to_do, smiley, (11,squiggle_y), smiley.convert("RGBA"))

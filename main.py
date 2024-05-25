@@ -28,17 +28,17 @@ days = 0
 
 #Initial Room Definition
 
-rooms = {"kitchen": {}, "bedroom": {}, "bathroom":{}, "lounge": {}} #Contains the rooms
+rooms = {"bathroom": {}, "bedroom": {}, "kitchen":{}, "lounge": {}} #Contains the rooms
 
-rooms["kitchen"]  = {
+rooms["bathroom"]  = {
         "colour": choice(colours), 
-                     
-        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 71, "ypos": 59}, 
-        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 39, "ypos": 86},
-        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 143, "ypos": 86},
                     
-        "top": False,
-        "left": False,
+        "hanging": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos":51, "ypos":95}, 
+        "lamp": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos":183, "ypos":67},
+        "tat": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos":103, "ypos":123},
+        
+        "top": True,
+        "left": True,
                     
         "img": None,
         "xpos": None,
@@ -48,9 +48,9 @@ rooms["kitchen"]  = {
 rooms["bedroom"]  = {
        "colour": choice(colours), 
         
-        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 171, "ypos": 67}, 
-        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 115, "ypos": 107},
-        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 77, "ypos": 95},
+        "hanging": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 171, "ypos": 67}, 
+        "lamp": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 115, "ypos": 107},
+        "tat": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 77, "ypos": 95},
                     
         "top": True,
         "left": False,
@@ -60,15 +60,15 @@ rooms["bedroom"]  = {
         "ypos": None
 }
 
-rooms["bathroom"]  = {
+rooms["kitchen"]  = {
         "colour": choice(colours), 
+                     
+        "hanging": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 71, "ypos": 59}, 
+        "lamp": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 39, "ypos": 86},
+        "tat": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 143, "ypos": 86},
                     
-        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":51, "ypos":95}, 
-        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":183, "ypos":67},
-        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos":103, "ypos":123},
-        
-        "top": True,
-        "left": True,
+        "top": False,
+        "left": False,
                     
         "img": None,
         "xpos": None,
@@ -78,9 +78,9 @@ rooms["bathroom"]  = {
 rooms["lounge"]  = {
         "colour": choice(colours), 
         
-        "hanging": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 139, "ypos": 63}, 
-        "lamp": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 183, "ypos": 123},
-        "tat": {"colour": choice(colours), "style": choice(styles), "img": None, "label": None, "xpos": 87, "ypos": 123},
+        "hanging": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 139, "ypos": 63}, 
+        "lamp": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 183, "ypos": 123},
+        "tat": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 87, "ypos": 123},
                     
         "top": False,
         "left": True,
@@ -89,6 +89,9 @@ rooms["lounge"]  = {
         "xpos": None,
         "ypos": None            
 }
+
+
+
 root = tk.Tk()
 
 def destroy_window():
@@ -229,17 +232,30 @@ def handle_keypress(e):
     
 
     elif cursor_loc[1] != "wall":
+        
         if e.char.lower() == "z":
-            cursor_obj["style"] = "antique"
+            if cursor_obj["style"] == "antique":
+                cursor_obj["style"] = None
+            else:
+                cursor_obj["style"] = "antique"
 
         elif e.char.lower() == "x":
-            cursor_obj["style"] = "retro"
+            if cursor_obj["style"] == "retro":
+                cursor_obj["style"] = None
+            else:
+                cursor_obj["style"] = "retro"
 
         elif e.char.lower() == "c":
-            cursor_obj["style"] = "modern"
+            if cursor_obj["style"] == "modern":
+                cursor_obj["style"] = None
+            else:
+                cursor_obj["style"] = "modern"
 
         elif e.char.lower() == "v":
-            cursor_obj["style"] = "unusual"
+            if cursor_obj["style"] == "unusual":
+                cursor_obj["style"] = None
+            else:
+                cursor_obj["style"] = "unusual"
 
 
     redraw = True
@@ -415,6 +431,9 @@ def evaluate_rule(rooms, rule):
 
             for obj_type in types:
                 score = 1
+                if rooms[room][obj_type]["style"] == None:
+                    continue
+
                 if not (rule["type"] == obj_type or rule["type"] == None): 
                     score -= (1/req_count)
 
@@ -447,11 +466,15 @@ def evaluate_rule(rooms, rule):
 
 def create_object(room, rooms, obj_type):
     #Open object or placeholder
-    try:
-        rooms[room][obj_type]["img"] = Image.open(f'''assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
-    except FileNotFoundError:
-        print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png falling back to assets/placeholder.png''')
-        rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
+    if rooms[room][obj_type]["style"] != None:
+        try:
+            rooms[room][obj_type]["img"] = Image.open(f'''assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
+        except FileNotFoundError:
+            print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png falling back to assets/placeholder.png''')
+            rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
+
+    else:
+        rooms[room][obj_type]["img"] = Image.open("assets/blank.png")
 
     #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
     try:

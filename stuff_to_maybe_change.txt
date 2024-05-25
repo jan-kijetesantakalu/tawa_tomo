@@ -1,4 +1,3 @@
-Ba-A-L (move 1px left)
 Be-H-M
 Be-L-M
 Be-R-light?
@@ -11,3 +10,5 @@ Smileys (no transparent) + Squiggles 16
 Pillow
 Background?
 Lounge + Bedroom window- transparent
+
+Blank- make see-through-ish

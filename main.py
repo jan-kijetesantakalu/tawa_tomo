@@ -7,11 +7,11 @@ types   = ["lamp", "hanging", "tat"]
 colours = ["red", "blue", "green", "yellow"]
 styles  = ["modern", "antique", "retro", "unusual"]
 cursor_pos = 0
+to_do_pos = 1
 cursor_order = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat"), ("bathroom", "lamp"), 
                 ("bedroom", "wall"), ("bedroom", "tat"), ("bedroom", "lamp"), ("bedroom", "hanging"),
                 ("lounge", "wall"), ("lounge", "tat"), ("lounge", "hanging"), ("lounge", "lamp"),
                 ("kitchen", "wall"), ("kitchen", "lamp"), ("kitchen", "hanging"), ("kitchen", "tat")]
-to_do_pos = 1
 
 
 import tkinter as tk
@@ -105,7 +105,7 @@ def hide_to_do(e=None):
     redraw = True   
     
     if to_do_pos > 0:    
-        to_do_pos -= 0.125
+        to_do_pos -= 0.02+(to_do_pos/4)**1.5
         try:
             root.after_cancel(to_do_after_id)
         except NameError:
@@ -122,7 +122,7 @@ def show_to_do(e=None):
     redraw = True
     
     if to_do_pos < 1:
-        to_do_pos += 0.125
+        to_do_pos += 0.02+((1-to_do_pos)/4)**1.5
         try:
             root.after_cancel(to_do_after_id)
         except NameError:

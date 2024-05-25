@@ -449,7 +449,7 @@ def draw_canvas():
     
     
     #draw to do list
-    to_do = Image.open("assets/to_do.png")
+    to_do = Image.open("assets/to_do.png").convert("RGBA")
     n_smileys = len(glob.glob("assets/smileys/*.png"))
     squiggle_y = 20
 

@@ -1,4 +1,11 @@
-global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do_pos, to_do_after_id, sleep_pos, sleep_after_id #, SCALE
+global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames #, SCALE
+
+
+import tkinter as tk
+from random import *
+from PIL import Image, ImageTk, ImageDraw
+from math import floor
+import glob
 
 
 redraw = True
@@ -12,14 +19,11 @@ cursor_order = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat
                 ("bedroom", "wall"), ("bedroom", "tat"), ("bedroom", "lamp"), ("bedroom", "hanging"),
                 ("lounge", "wall"), ("lounge", "tat"), ("lounge", "hanging"), ("lounge", "lamp"),
                 ("kitchen", "wall"), ("kitchen", "lamp"), ("kitchen", "hanging"), ("kitchen", "tat")]
+to_do = Image.open("assets/to_do.png")
+update_to_do = True
 sleep_pos = 0
+sleep_frames = 0
 
-
-import tkinter as tk
-from random import *
-from PIL import Image, ImageTk
-from math import floor
-import glob
 
 #Initial Room Definition
 
@@ -155,6 +159,7 @@ def hide_sleep(e=None):
 def show_sleep(e=None):
     global redraw, sleep_pos, sleep_after_id
     redraw = True
+    hide_to_do()
 
     if sleep_pos < 1:
         sleep_pos += 0.03+((1-sleep_pos)/16)+((1-sleep_pos)/4)**2
@@ -165,8 +170,16 @@ def show_sleep(e=None):
             pass
         sleep_after_id = root.after(1, show_sleep)
     sleep_pos = min(sleep_pos, 1)
-        
 
+
+def commit_sleep():
+    global redraw, update_to_do, sleep_frames
+#    hide_sleep()
+    redraw = True
+    sleep_frames = 100    
+#    update_to_do = True
+#    show_to_do()
+    
 
 def handle_keypress(e):
     global cursor_pos, redraw
@@ -176,7 +189,10 @@ def handle_keypress(e):
     cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
     
     if e.char.lower() == "q":
-        show_sleep()
+        if sleep_pos > 0.75:
+            commit_sleep()
+        else:
+            show_sleep()
 
     elif e.char.lower() == "w":
         hide_sleep()
@@ -476,7 +492,7 @@ quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=destroy_
 quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
 
 def draw_canvas():
-    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos, to_do_pos
+    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames
     
     #Load and Place Background
     try:
@@ -486,7 +502,6 @@ def draw_canvas():
         back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
 
     #Place background on canvas
-
     back_img = back_img.resize((596, 336), Image.NEAREST)
     Image.Image.paste(canvas, back_img, (0, 0))
 
@@ -522,42 +537,58 @@ def draw_canvas():
     
     Image.Image.paste(canvas, cursor_img, (cur_xpos,cur_ypos), cursor_img.convert("RGBA"))
     
+    if update_to_do:
+        update_to_do = False
+        #draw to do list
+        to_do = Image.open("assets/to_do.png").convert("RGBA")
     
-    #draw to do list
-    to_do = Image.open("assets/to_do.png").convert("RGBA")
+        stuff = Image.open("assets/to_do_stuff.png")
+        Image.Image.paste(to_do, stuff, (11,20), stuff.convert("RGBA"))
     
-    stuff = Image.open("assets/to_do_stuff.png")
-    Image.Image.paste(to_do, stuff, (11,20), stuff.convert("RGBA"))
+        n_smileys = len(glob.glob("assets/smileys/*.png"))
+        squiggle_y = 38
     
-    n_smileys = len(glob.glob("assets/smileys/*.png"))
-    squiggle_y = 38
-    
-    drawn_wall_label = False
+        drawn_wall_label = False
 
-    for rule in rules: 
-        if not rule["obj"] and not drawn_wall_label:
-            drawn_wall_label = True
-            walls = Image.open("assets/to_do_walls.png")
-            Image.Image.paste(to_do, walls, (11,squiggle_y), walls.convert("RGBA"))
+        for rule in rules: 
+            if not rule["obj"] and not drawn_wall_label:
+                drawn_wall_label = True
+                walls = Image.open("assets/to_do_walls.png")
+                Image.Image.paste(to_do, walls, (11,squiggle_y), walls.convert("RGBA"))
+                squiggle_y += 18
+
+            squiggle = Image.open(choice(glob.glob("assets/squiggles/*.png")))
+            Image.Image.paste(to_do, squiggle, (11,squiggle_y), squiggle.convert("RGBA"))
+
+            rule_score = evaluate_rule(rooms, rule)
+
+            smiley = Image.open(f"assets/smileys/smiley_{round(rule_score * (n_smileys-1))}.png")
+            Image.Image.paste(to_do, smiley, (11,squiggle_y), smiley.convert("RGBA"))
+
             squiggle_y += 18
-
-        squiggle = Image.open(choice(glob.glob("assets/squiggles/*.png")))
-        Image.Image.paste(to_do, squiggle, (11,squiggle_y), squiggle.convert("RGBA"))
-
-        rule_score = evaluate_rule(rooms, rule)
-
-        smiley = Image.open(f"assets/smileys/smiley_{round(rule_score * (n_smileys-1))}.png")
-        Image.Image.paste(to_do, smiley, (11,squiggle_y), smiley.convert("RGBA"))
-
-        squiggle_y += 18
 
 
     Image.Image.paste(canvas, to_do, (576-int(92*to_do_pos),0), to_do.convert("RGBA"))
 
 
     sleep = Image.open("assets/sleep.png")
+
     Image.Image.paste(canvas, sleep, (0, 0-int(336*(1-sleep_pos))), sleep.convert("RGBA"))
 
+    # sleeping
+    sleep_rec = Image.new("RGBA", canvas.size)
+    ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
+    Image.Image.paste(canvas, sleep_rec, (0,0), sleep_rec.convert("RGBA"))
+
+    if sleep_frames > 0:
+        sleep_frames -= 1
+    
+    if sleep_frames == 10:
+        show_to_do()
+
+    if sleep_frames == 50:
+        hide_sleep()
+        update_to_do = True
 
     #Convert Canvas to Tk Label and draw to screen
     #Resample to screen size using NN
@@ -577,7 +608,7 @@ while mainloop:
     root.update_idletasks()
     root.update()
     
-    if redraw:
+    if redraw or sleep_frames > 0:
         draw_canvas()
         redraw = False
 

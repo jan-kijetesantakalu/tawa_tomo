@@ -84,10 +84,15 @@ rooms["lounge"]  = {
         "xpos": None,
         "ypos": None            
 }
+root = tk.Tk()
+
+def destroy_window():
+    global mainloop
+    mainloop = False
 
 #Create Root Window
-root = tk.Tk()
 root.attributes('-fullscreen', True)
+root.protocol("WM_DELETE_WINDOW", destroy_window)
 
 def cursor_next(e):
     global cursor_pos, redraw
@@ -465,10 +470,6 @@ canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
 canvas_label = tk.Label()
 canvas_label.place(x=0, y=0)
 
-def destroy_window():
-    global mainloop
-    mainloop = False
-    root.destroy()
 
 #Place Quit Button
 quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=destroy_window)
@@ -581,3 +582,6 @@ while mainloop:
         redraw = False
 
     x += 1
+
+root.destroy()
+

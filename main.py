@@ -1,7 +1,8 @@
-global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw #, SCALE
+global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop #, SCALE
 
 
 redraw = True
+mainloop = True
 types   = ["lamp", "hanging", "tat"]
 colours = ["red", "blue", "green", "yellow"]
 styles  = ["modern", "antique", "retro", "unusual"]
@@ -181,7 +182,7 @@ while len(rules) < num_rules:
     try:
         obj_variety = 192
         pos_variety = 12
-        target = 24
+        target = 12
     
         rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None}
     
@@ -305,16 +306,13 @@ def evaluate_rule(rooms, rule):
                 if not (rule["style"] == rooms[room][obj_type]["style"] or rule["style"] == None):
                     score -= (1/3)
  
-                if not (rule["colour"] == rooms[room][obj_type]["colour"] or rule["style"] == None):
+                if not (rule["colour"] == rooms[room][obj_type]["colour"] or rule["colour"] == None):
                     score -= (1/3)
                 
                 if score > best_score:
                     best_score = score
                     
-
         return best_score
-
-
 
     else:
         for room in rooms:
@@ -387,7 +385,15 @@ def create_rooms(rooms):
 canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
 canvas_label = tk.Label()
 canvas_label.place(x=0, y=0)
-quit = tk.Button()
+
+def destroy_window():
+    global mainloop
+    mainloop = False
+    root.destroy()
+
+#Place Quit Button
+quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=destroy_window)
+quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
 
 def draw_canvas():
     global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos
@@ -450,9 +456,6 @@ def draw_canvas():
 
     canvas_label.config(image = canvas_tk)
 
-    #Place Quit Button
-    quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=root.destroy)
-    quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
     
 draw_canvas()
 
@@ -461,7 +464,7 @@ draw_canvas()
 
 #Mainloop
 x = 0
-while root.state() == 'normal':
+while mainloop:
     root.update_idletasks()
     root.update()
     

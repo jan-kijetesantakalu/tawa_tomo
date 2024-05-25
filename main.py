@@ -104,8 +104,8 @@ def hide_to_do(e=None):
     global redraw, to_do_pos, to_do_after_id    
     redraw = True   
     
-    if to_do_pos > 0:    
-        to_do_pos -= 0.02+(to_do_pos/4)**1.5
+    if to_do_pos > 0.01:    
+        to_do_pos -= 0.01+(to_do_pos/12)+(to_do_pos/4)**1.5
         try:
             root.after_cancel(to_do_after_id)
         except NameError:
@@ -113,24 +113,21 @@ def hide_to_do(e=None):
             pass
         to_do_after_id = root.after(1, hide_to_do)
         
-            
-    to_do_pos = max(to_do_pos, 0)
 
 
 def show_to_do(e=None):
     global redraw, to_do_pos, to_do_after_id    
     redraw = True
     
-    if to_do_pos < 1:
-        to_do_pos += 0.02+((1-to_do_pos)/4)**1.5
+    if to_do_pos < 0.99:
+        to_do_pos += 0.01+((1-to_do_pos)/12)+((1-to_do_pos)/4)**1.5
         try:
             root.after_cancel(to_do_after_id)
         except NameError:
             # if event not defined
             pass
         to_do_after_id = root.after(1, show_to_do)
-     
-    to_do_pos = min(to_do_pos, 1)
+    
 
 
 def handle_keypress(e):
@@ -535,7 +532,6 @@ while mainloop:
     root.update()
     
     if redraw:
-        print(f"Update {x}")
         draw_canvas()
         redraw = False
 

@@ -1,9 +1,9 @@
-global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames #, SCALE
+global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days #, SCALE
 
 
 import tkinter as tk
 from random import *
-from PIL import Image, ImageTk, ImageDraw
+from PIL import Image, ImageTk, ImageDraw, ImageFont
 from math import floor
 import glob
 
@@ -22,7 +22,8 @@ cursor_order = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat
 to_do = Image.open("assets/to_do.png")
 update_to_do = True
 sleep_pos = 0
-sleep_frames = 0
+sleep_frames = 51
+days = 0
 
 
 #Initial Room Definition
@@ -100,18 +101,24 @@ root.protocol("WM_DELETE_WINDOW", destroy_window)
 
 def cursor_next(e):
     global cursor_pos, redraw
+    if e != None and sleep_frames != 0:
+        return
     cursor_pos += 1
     cursor_pos %= 16
     redraw = True
 
 def cursor_prev(e):
     global cursor_pos, redraw
+    if e != None and sleep_frames != 0:
+        return
     cursor_pos -= 1
     cursor_pos %= 16
     redraw = True
 
 def hide_to_do(e=None):
     global redraw, to_do_pos, to_do_after_id    
+    if e != None and sleep_frames != 0:
+        return
     redraw = True   
     
     if to_do_pos > 0.01:    
@@ -128,6 +135,8 @@ def hide_to_do(e=None):
 
 def show_to_do(e=None):
     global redraw, to_do_pos, to_do_after_id    
+    if e != None and sleep_frames != 0:
+        return
     redraw = True
     
     if to_do_pos < 0.99:
@@ -143,6 +152,8 @@ def show_to_do(e=None):
 
 def hide_sleep(e=None):
     global redraw, sleep_pos, sleep_after_id
+    if e != None and sleep_frames != 0:
+        return
     redraw = True
 
     if sleep_pos > 0:
@@ -158,6 +169,8 @@ def hide_sleep(e=None):
 
 def show_sleep(e=None):
     global redraw, sleep_pos, sleep_after_id
+    if e != None and sleep_frames != 0:
+        return
     redraw = True
     hide_to_do()
 
@@ -184,6 +197,9 @@ def commit_sleep():
 def handle_keypress(e):
     global cursor_pos, redraw
     
+    if sleep_frames != 0:
+        return
+
     cursor_loc = cursor_order[cursor_pos]
     cursor_room = rooms[cursor_loc[0]]
     cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
@@ -192,10 +208,11 @@ def handle_keypress(e):
         if sleep_pos > 0.75:
             commit_sleep()
         else:
-            show_sleep()
+            show_sleep(e)
+    
 
     elif e.char.lower() == "w":
-        hide_sleep()
+        hide_sleep(e)
 
 
     elif e.char.lower() == "a":
@@ -487,12 +504,8 @@ canvas_label = tk.Label()
 canvas_label.place(x=0, y=0)
 
 
-#Place Quit Button
-quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=destroy_window)
-quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
-
 def draw_canvas():
-    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames
+    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames, days, redraw
     
     #Load and Place Background
     try:
@@ -575,21 +588,25 @@ def draw_canvas():
 
     Image.Image.paste(canvas, sleep, (0, 0-int(336*(1-sleep_pos))), sleep.convert("RGBA"))
 
-    # sleeping
-    sleep_rec = Image.new("RGBA", canvas.size)
-    ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
-    Image.Image.paste(canvas, sleep_rec, (0,0), sleep_rec.convert("RGBA"))
 
     if sleep_frames > 0:
+        # sleeping
+        redraw = True
+        sleep_rec = Image.new("RGBA", canvas.size)
+        ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
+        font = ImageFont.truetype("assets/pixel_font.ttf", 48)
+        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {days}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
+        Image.Image.paste(canvas, sleep_rec, (0,0), sleep_rec.convert("RGBA"))
         sleep_frames -= 1
-    
+
     if sleep_frames == 10:
         show_to_do()
 
     if sleep_frames == 50:
         hide_sleep()
+        days += 1
         update_to_do = True
-
+    
     #Convert Canvas to Tk Label and draw to screen
     #Resample to screen size using NN
     canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
@@ -608,9 +625,9 @@ while mainloop:
     root.update_idletasks()
     root.update()
     
-    if redraw or sleep_frames > 0:
-        draw_canvas()
+    if redraw:
         redraw = False
+        draw_canvas()
 
     x += 1
 

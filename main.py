@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do_pos #, SCALE
+global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do_pos, to_do_after_id #, SCALE
 
 
 redraw = True
@@ -101,25 +101,36 @@ def cursor_prev(e):
     redraw = True
 
 def hide_to_do(e=None):
-    global redraw, to_do_pos
-    to_do_pos -= 0.05
-    
-    if to_do_pos > 0:
-        root.after(1, hide_to_do)
-    
-    to_do_pos = max(to_do_pos, 0)
+    global redraw, to_do_pos, to_do_after_id    
     redraw = True   
+    
+    if to_do_pos > 0:    
+        to_do_pos -= 0.125
+        try:
+            root.after_cancel(to_do_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        to_do_after_id = root.after(1, hide_to_do)
+        
+            
+    to_do_pos = max(to_do_pos, 0)
 
 
 def show_to_do(e=None):
-    global redraw, to_do_pos
-    to_do_pos += 0.05
-
-    if to_do_pos < 1:
-        root.after(1, show_to_do)
-
-    to_do_pos = min(to_do_pos, 1)
+    global redraw, to_do_pos, to_do_after_id    
     redraw = True
+    
+    if to_do_pos < 1:
+        to_do_pos += 0.125
+        try:
+            root.after_cancel(to_do_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        to_do_after_id = root.after(1, show_to_do)
+     
+    to_do_pos = min(to_do_pos, 1)
 
 
 def handle_keypress(e):

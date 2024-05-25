@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop #, SCALE
+global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do_pos #, SCALE
 
 
 redraw = True
@@ -11,6 +11,8 @@ cursor_order = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat
                 ("bedroom", "wall"), ("bedroom", "tat"), ("bedroom", "lamp"), ("bedroom", "hanging"),
                 ("lounge", "wall"), ("lounge", "tat"), ("lounge", "hanging"), ("lounge", "lamp"),
                 ("kitchen", "wall"), ("kitchen", "lamp"), ("kitchen", "hanging"), ("kitchen", "tat")]
+to_do_pos = 1
+
 
 import tkinter as tk
 from random import *
@@ -98,6 +100,28 @@ def cursor_prev(e):
     cursor_pos %= 16
     redraw = True
 
+def hide_to_do(e=None):
+    global redraw, to_do_pos
+    to_do_pos -= 0.05
+    
+    if to_do_pos > 0:
+        root.after(1, hide_to_do)
+    
+    to_do_pos = max(to_do_pos, 0)
+    redraw = True   
+
+
+def show_to_do(e=None):
+    global redraw, to_do_pos
+    to_do_pos += 0.05
+
+    if to_do_pos < 1:
+        root.after(1, show_to_do)
+
+    to_do_pos = min(to_do_pos, 1)
+    redraw = True
+
+
 def handle_keypress(e):
     global cursor_pos, redraw
     
@@ -140,6 +164,8 @@ def handle_keypress(e):
 
 root.bind("<Right>", cursor_next)
 root.bind("<Left>", cursor_prev)
+root.bind("<Down>", hide_to_do)
+root.bind("<Up>", show_to_do)
 root.bind("<KeyPress>", handle_keypress)
 
 
@@ -401,7 +427,7 @@ quit = tk.Button(root, text="QUIT", bg="darkred", fg = "white", command=destroy_
 quit.place(x = 0, y = 0) #Ugly and Hardcoded, fix later
 
 def draw_canvas():
-    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos
+    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos, to_do_pos
     
     #Load and Place Background
     try:
@@ -466,7 +492,7 @@ def draw_canvas():
         squiggle_y += 18
 
 
-    Image.Image.paste(canvas, to_do, (484,0), to_do.convert("RGBA"))
+    Image.Image.paste(canvas, to_do, (576-int(92*to_do_pos),0), to_do.convert("RGBA"))
     
     #Convert Canvas to Tk Label and draw to screen
     #Resample to screen size using NN

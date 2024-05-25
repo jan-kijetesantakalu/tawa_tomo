@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do_pos, to_do_after_id #, SCALE
+global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do_pos, to_do_after_id, sleep_pos, sleep_after_id #, SCALE
 
 
 redraw = True
@@ -12,6 +12,7 @@ cursor_order = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat
                 ("bedroom", "wall"), ("bedroom", "tat"), ("bedroom", "lamp"), ("bedroom", "hanging"),
                 ("lounge", "wall"), ("lounge", "tat"), ("lounge", "hanging"), ("lounge", "lamp"),
                 ("kitchen", "wall"), ("kitchen", "lamp"), ("kitchen", "hanging"), ("kitchen", "tat")]
+sleep_pos = 0
 
 
 import tkinter as tk
@@ -112,7 +113,8 @@ def hide_to_do(e=None):
             # if event not defined
             pass
         to_do_after_id = root.after(1, hide_to_do)
-        
+    to_do_pos = max(to_do_pos, 0)
+
 
 
 def show_to_do(e=None):
@@ -127,7 +129,38 @@ def show_to_do(e=None):
             # if event not defined
             pass
         to_do_after_id = root.after(1, show_to_do)
-    
+    to_do_pos = min(to_do_pos, 1)
+   
+
+def hide_sleep(e=None):
+    global redraw, sleep_pos, sleep_after_id
+    redraw = True
+
+    if sleep_pos > 0:
+        sleep_pos -= 0.03+(sleep_pos/16)+(sleep_pos/4)**2
+        try:
+            root.after_cancel(sleep_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        sleep_after_id = root.after(1, hide_sleep)
+    sleep_pos = max(sleep_pos, 0)
+
+
+def show_sleep(e=None):
+    global redraw, sleep_pos, sleep_after_id
+    redraw = True
+
+    if sleep_pos < 1:
+        sleep_pos += 0.03+((1-sleep_pos)/16)+((1-sleep_pos)/4)**2
+        try:
+            root.after_cancel(sleep_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        sleep_after_id = root.after(1, show_sleep)
+    sleep_pos = min(sleep_pos, 1)
+        
 
 
 def handle_keypress(e):
@@ -137,7 +170,14 @@ def handle_keypress(e):
     cursor_room = rooms[cursor_loc[0]]
     cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
     
-    if e.char.lower() == "a":
+    if e.char.lower() == "q":
+        show_sleep()
+
+    elif e.char.lower() == "w":
+        hide_sleep()
+
+
+    elif e.char.lower() == "a":
         cursor_obj["colour"] = "red"
     
     elif e.char.lower() == "s":
@@ -512,7 +552,12 @@ def draw_canvas():
 
 
     Image.Image.paste(canvas, to_do, (576-int(92*to_do_pos),0), to_do.convert("RGBA"))
-    
+
+
+    sleep = Image.open("assets/sleep.png")
+    Image.Image.paste(canvas, sleep, (0, 0-int(336*(1-sleep_pos))), sleep.convert("RGBA"))
+
+
     #Convert Canvas to Tk Label and draw to screen
     #Resample to screen size using NN
     canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))

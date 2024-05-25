@@ -290,6 +290,7 @@ for rule in rules:
 # Evaluate rule
 def evaluate_rule(rooms, rule):
     if rule["obj"]:
+        req_count = 3 - [rule[j] for j in ["style", "type", "colour"]].count(None)
         best_score = 0
         for room in rooms:
             if not (rule["room_top"] == rooms[room]["top"] or rule["room_top"] == None):
@@ -301,13 +302,13 @@ def evaluate_rule(rooms, rule):
             for obj_type in types:
                 score = 1
                 if not (rule["type"] == obj_type or rule["type"] == None): 
-                    score -= (1/3)
+                    score -= (1/req_count)
 
                 if not (rule["style"] == rooms[room][obj_type]["style"] or rule["style"] == None):
-                    score -= (1/3)
+                    score -= (1/req_count)
  
                 if not (rule["colour"] == rooms[room][obj_type]["colour"] or rule["colour"] == None):
-                    score -= (1/3)
+                    score -= (1/req_count)
                 
                 if score > best_score:
                     best_score = score

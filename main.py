@@ -15,31 +15,9 @@ def exit_loop():
     mainloop = False
     setup_loop = False
 
-#Create Root Window
-root = tk.Tk()
-root.attributes('-fullscreen', True)
-root.protocol("WM_DELETE_WINDOW", exit_loop)
-
-WIDTH = root.winfo_screenwidth()
-HEIGHT = root.winfo_screenheight()
-
-if WIDTH/HEIGHT - 16/9 > 0.02:
-    #Screen is wider than expected
-    WIDTH = int(HEIGHT* 16/9)
-elif WIDTH/HEIGHT - 16/9 < 0.2:
-    #Screen is taller than expected
-    HEIGHT = int(WIDTH * 9/16)
-
 #Create Canvas Image
 canvas = Image.new(mode= "RGBA", size=(596,336))
 
-canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-canvas_label = tk.Label()
-canvas_label.place(x=0, y=0)
-
-def finalise_canvas():
-    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-    canvas_label.config(image = canvas_tk)
 
 def open_asset(asset = "placeholder", bypass_cache = False):
     global img_cache
@@ -65,10 +43,31 @@ def draw_img(img = open_asset("placeholder"), pos = (0, 0), dest = canvas):
 def draw_asset(asset = "placeholder", pos = (0,0), dest = canvas):
     draw_img(open_asset(asset), pos, dest)
 
+#Create Root Window
+root = tk.Tk()
+root.attributes('-fullscreen', True)
+root.protocol("WM_DELETE_WINDOW", exit_loop)
+root.title("decorumish - jan Kili Lili anu jan Kijetesantakalu")
+root.wm_iconphoto(True, ImageTk.PhotoImage(open_asset("icon"))) 
 
+WIDTH = root.winfo_screenwidth()
+HEIGHT = root.winfo_screenheight()
 
+if WIDTH/HEIGHT - 16/9 > 0.02:
+    #Screen is wider than expected
+    WIDTH = int(HEIGHT* 16/9)
+elif WIDTH/HEIGHT - 16/9 < 0.2:
+    #Screen is taller than expected
+    HEIGHT = int(WIDTH * 9/16)
 
+canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+canvas_label = tk.Label()
 
+canvas_label.place(x=0, y=0)
+
+def finalise_canvas():
+    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+    canvas_label.config(image = canvas_tk)
 
 
 #Initilse Constants

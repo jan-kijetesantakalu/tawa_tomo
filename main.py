@@ -549,7 +549,7 @@ def draw_canvas():
     #Draw rooms and objects onto canvas
     draw_rooms(rooms)
 
-    draw_img(create_cursor())
+    draw_img(*create_cursor())
         
     if update_to_do:
         update_to_do = False

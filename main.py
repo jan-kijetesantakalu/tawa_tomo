@@ -1,11 +1,9 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days, num_rules, num_wall_rules #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, cursor_order, redraw, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days, num_rules, num_wall_rules #, SCALE
 
 import tkinter as tk
 from random import *
 from PIL import Image, ImageTk, ImageDraw, ImageFont
-from math import floor
-import glob
-import sys, os
+import glob, sys, os
 
 redraw = True #Will next frame be drawn?
 mainloop = True
@@ -330,6 +328,14 @@ def evaluate_rule(rooms, rule):
 
 
 #SETUP SCREEN
+def create_sleep_overlay():
+    sleep_rec = Image.new("RGBA", canvas.size)
+    ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
+    font = ImageFont.truetype("assets/pixel_font.ttf", 48)
+    ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
+    return sleep_rec
+
+
 def draw_setup():
     global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules, sleep_frames
      
@@ -342,12 +348,7 @@ def draw_setup():
     draw_asset(f"numbers/number_{num_wall_rules}", (297, 164))
     
     if sleep_frames > 0:
-        sleep_rec = Image.new("RGBA", canvas.size)
-        ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
-        font = ImageFont.truetype("assets/pixel_font.ttf", 48)
-        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
-        
-        draw_img(sleep_rec)
+        draw_img(create_sleep_overlay())
 
         sleep_frames -= 1
 
@@ -457,6 +458,36 @@ def create_rooms(rooms):
         for obj in TYPES:
             create_object(room, rooms, obj)
         
+def create_to_do():
+    #draw to do list
+    to_do = open_asset("to_do")
+
+    draw_asset("to_do_stuff", (11,20), to_do)
+
+    n_smileys = len(glob.glob("assets/smileys/*.png"))
+    squiggle_y = 38
+
+    drawn_wall_label = False
+    
+    squiggles = [x for x in range(1,n_smileys+1)]
+
+    for rule in rules: 
+        if not rule["obj"] and not drawn_wall_label:
+            drawn_wall_label = True
+            draw_asset("to_do_walls", (11, squiggle_y), to_do)
+            squiggle_y += 18
+        
+        if len(squiggles) == 0:
+            squiggles = [x for x in range(1,n_smileys+1)]
+        
+
+        draw_asset(f"squiggles/squiggle_{squiggles.pop(randint(0, len(squiggles)-1))}", (11, squiggle_y), to_do)
+
+        draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), to_do)
+
+        squiggle_y += 18
+    
+    return to_do
 
 
 def draw_canvas():
@@ -497,47 +528,16 @@ def draw_canvas():
         
     if update_to_do:
         update_to_do = False
-        #draw to do list
-        to_do = open_asset("to_do")
+        to_do = create_to_do()
 
-        draw_asset("to_do_stuff", (11,20), to_do)
-
-        n_smileys = len(glob.glob("assets/smileys/*.png"))
-        squiggle_y = 38
-    
-        drawn_wall_label = False
-        
-        squiggles = [x for x in range(1,n_smileys+1)]
-
-        for rule in rules: 
-            if not rule["obj"] and not drawn_wall_label:
-                drawn_wall_label = True
-                draw_asset("to_do_walls", (11, squiggle_y), to_do)
-                squiggle_y += 18
-            
-            if len(squiggles) == 0:
-                squiggles = [x for x in range(1,n_smileys+1)]
-            
-
-            draw_asset(f"squiggles/squiggle_{squiggles.pop(randint(0, len(squiggles)-1))}", (11, squiggle_y), to_do)
-
-            draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), to_do)
-
-            squiggle_y += 18
-
-
-    draw_img(to_do, (576-int(92*to_do_pos),0) )
+    draw_img(to_do, (576-int(92*to_do_pos),0))
 
     draw_asset("sleep", (0, 0-int(336*(1-sleep_pos))))
 
     if sleep_frames > 0:
         # sleeping
         redraw = True
-        sleep_rec = Image.new("RGBA", canvas.size)
-        ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
-        font = ImageFont.truetype("assets/pixel_font.ttf", 48)
-        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
-        draw_img(sleep_rec)
+        draw_img(create_sleep_overlay())
         sleep_frames -= 1
 
     if sleep_frames == 10:

@@ -1,7 +1,7 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, cursor_order, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days, num_rules, num_wall_rules #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_frames, days, num_rules, num_wall_rules #, SCALE
 
 import tkinter as tk
-from random import *
+from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import glob, sys, os, time
 

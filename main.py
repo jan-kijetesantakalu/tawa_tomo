@@ -1,5 +1,4 @@
-global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days, num_rules, num_wall_rules #, SCALE
-
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days, num_rules, num_wall_rules #, SCALE
 
 import tkinter as tk
 from random import *
@@ -8,39 +7,100 @@ from math import floor
 import glob
 import sys, os
 
-
-redraw = True
+redraw = True #Will next frame be drawn?
 mainloop = True
-types   = ["lamp", "hanging", "tat"]
-colours = ["red", "blue", "green", "yellow"]
-styles  = ["modern", "antique", "retro", "unusual"]
-cursor_pos = 0
-to_do_pos = 1
-cursor_order = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat"), ("bathroom", "lamp"), 
+setup_loop = True
+
+def exit_loop():
+    global mainloop, setup_loop
+    mainloop = False
+    setup_loop = False
+
+#Create Root Window
+root = tk.Tk()
+root.attributes('-fullscreen', True)
+root.protocol("WM_DELETE_WINDOW", exit_loop)
+
+WIDTH = root.winfo_screenwidth()
+HEIGHT = root.winfo_screenheight()
+
+if WIDTH/HEIGHT - 16/9 > 0.02:
+    #Screen is wider than expected
+    WIDTH = int(HEIGHT* 16/9)
+elif WIDTH/HEIGHT - 16/9 < 0.2:
+    #Screen is taller than expected
+    HEIGHT = int(WIDTH * 9/16)
+
+#Create Canvas Image
+canvas = Image.new(mode= "RGBA", size=(596,336))
+
+canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+canvas_label = tk.Label()
+canvas_label.place(x=0, y=0)
+
+def open_asset(asset = "placeholder"):
+    try:
+        return Image.open(f"assets/{asset}.png")
+    except:
+        print(f'Failed opening: assets/{asset}.png, falling-back to: assets/placeholder.png')
+        return Image.open(f"assets/placeholder.png")
+
+def draw_img(img = open_asset("placeholder"), pos = (0, 0), dest = canvas):
+    Image.Image.paste(dest, img, pos, img.convert("RGBA"))
+
+def draw_asset(asset = "placeholder", pos = (0,0), dest = canvas):
+    draw_img(open_asset(asset), pos, dest)
+
+
+
+
+
+
+
+#Initilse Constants
+
+TYPES   = ["lamp", "hanging", "tat"]
+COLOURS = ["red", "blue", "green", "yellow"]
+STYLES  = ["modern", "antique", "retro", "unusual"]
+
+CURSOR_ORDER = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat"), ("bathroom", "lamp"), 
                 ("bedroom", "wall"), ("bedroom", "tat"), ("bedroom", "lamp"), ("bedroom", "hanging"),
                 ("lounge", "wall"), ("lounge", "tat"), ("lounge", "hanging"), ("lounge", "lamp"),
                 ("kitchen", "wall"), ("kitchen", "lamp"), ("kitchen", "hanging"), ("kitchen", "tat")]
-to_do = Image.open("assets/to_do.png")
+
+
+#Initilise Default Values
+cursor_pos = 0 # Taken mod 16, the index of the cursor in CURSOR_ORDER
+
+to_do_pos = 1 #float, 0-1 (incl) interpolated the position of the to_do image
+
 update_to_do = True
-sleep_pos = 0
-sleep_frames = 0 
-days = 0
-num_rules = 4
-num_wall_rules = 2
-setup_loop = True
-sys.stdout = open(os.devnull, 'w')
+to_do = open_asset("to_do")
 
 
-#Initial Room Definition
+sleep_pos = 0 #float, 0-1 (incl) interpolated the position of the sleep image
+sleep_frames = 0 #The number of frames to sleep for
 
+
+days = 0 #The number of days passed (in game)
+
+num_rules = 4       #Default values, can be overwritten later
+num_wall_rules = 2  #As above
+
+
+#Disable printing if not in debug mode
+if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
+    sys.stdout = open(os.devnull, 'w')
+
+
+#Empty Room Initilisation
 rooms = {"bathroom": {}, "bedroom": {}, "kitchen":{}, "lounge": {}} #Contains the rooms
-
-rooms["bathroom"]  = {
-        "colour": choice(colours), 
+rooms["bathroom"] = {
+        "colour": choice(COLOURS), 
                     
-        "hanging": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos":51, "ypos":95}, 
-        "lamp": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos":183, "ypos":67},
-        "tat": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos":103, "ypos":123},
+        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":51, "ypos":95}, 
+        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":183, "ypos":67},
+        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":103, "ypos":123},
         
         "top": True,
         "left": True,
@@ -51,11 +111,11 @@ rooms["bathroom"]  = {
 }
 
 rooms["bedroom"]  = {
-       "colour": choice(colours), 
+       "colour": choice(COLOURS), 
         
-        "hanging": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 171, "ypos": 67}, 
-        "lamp": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 115, "ypos": 107},
-        "tat": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 77, "ypos": 95},
+        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 171, "ypos": 67}, 
+        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 115, "ypos": 107},
+        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 77, "ypos": 95},
                     
         "top": True,
         "left": False,
@@ -66,11 +126,11 @@ rooms["bedroom"]  = {
 }
 
 rooms["kitchen"]  = {
-        "colour": choice(colours), 
+        "colour": choice(COLOURS), 
                      
-        "hanging": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 71, "ypos": 59}, 
-        "lamp": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 39, "ypos": 86},
-        "tat": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 143, "ypos": 86},
+        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 71, "ypos": 59}, 
+        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 39, "ypos": 86},
+        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 143, "ypos": 86},
                     
         "top": False,
         "left": False,
@@ -81,11 +141,11 @@ rooms["kitchen"]  = {
 }
 
 rooms["lounge"]  = {
-        "colour": choice(colours), 
+        "colour": choice(COLOURS), 
         
-        "hanging": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 139, "ypos": 63}, 
-        "lamp": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 183, "ypos": 123},
-        "tat": {"colour": choice(colours), "style": None, "img": None, "label": None, "xpos": 87, "ypos": 123},
+        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 139, "ypos": 63}, 
+        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 183, "ypos": 123},
+        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 87, "ypos": 123},
                     
         "top": False,
         "left": True,
@@ -95,18 +155,404 @@ rooms["lounge"]  = {
         "ypos": None            
 }
 
+#check 2 rules are compatable 
+def rule_compatability(rule1, rule2):
+    if rule1 == rule2:
+        return False
+    
+    if rule1["room_top"] == rule2["room_top"] and rule1["room_top"] != None and rule1["type"] == rule2["type"] and rule1["type"] != None:
+        return False
+
+    return True
+
+def create_obj_rules(num_rules):
+    global TYPES, COLOURS, STYLES
+    #make rules for objects
+    rules = []
+
+    type_options = TYPES*2
+
+    class VarietyException(Exception):
+        pass
+
+    while len(rules) < num_rules:
+        try:
+            #magic numbers!
+            obj_variety = 192 
+            pos_variety = 12
+            target = 12
+        
+            rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None} 
+        
+            rule["room_top"] = choice([True, False, None, None])
+            if rule["room_top"] != None:
+                obj_variety /= 2
+                pos_variety /=2
+                if obj_variety * pos_variety <= target:
+                    raise(VarietyException)
+
+            rule["room_left"] = choice([True, False, None, None])
+            if rule["room_left"] != None:
+                obj_variety /= 2
+                pos_variety /= 2
+                if obj_variety * pos_variety <= target: 
+                    raise(VarietyException) 
+
+            if choice([True, False]):
+                rule["type"] = type_options.pop(type_options.index(choice(type_options)))
+            else:
+                rule["type"] = None
+            
+            if rule["type"] != None:
+                obj_variety /= 3
+                pos_variety /= 3
+                if obj_variety * pos_variety <= target:    
+                    raise(VarietyException)
+
+            rule["colour"] = choice(COLOURS+([None]))
+            if rule["colour"] != None:
+                obj_variety /= 4
+                if obj_variety * pos_variety <= target:
+                    raise(VarietyException) 
+
+            rule["style"] = choice(STYLES+([None]))
+            if rule["style"] != None:
+                obj_variety /= 4
+                if obj_variety * pos_variety <= target:
+                    raise(VarietyException)
+
+            raise(VarietyException)
+
+        except VarietyException:
+            comp = True
+            for rul in rules:
+                if not comp:
+                    break
+                else:
+                    comp = rule_compatability(rule, rul)
+            if comp:
+                rules.append(rule)   
+            elif rule["type"] != None:
+                type_options.append(rule["type"])
+    
+    return rules
+
+def create_wall_rules(num_wall_rules):
+    global COLOURS
+    # make rules for room colour
+    walls = []
+    wall_option_top = [True, True, False, False]
+    wall_option_left = [True, True, False, False]
+
+    while len(walls) < num_wall_rules:
+        wall = {"obj": False, "top": None, "left": None, "colour": None}
+        valid = True
+        
+        if choice([True, False]):
+            # choose option from list for wall option top and remove it
+            wall["top"] = wall_option_top.pop(wall_option_top.index(choice(wall_option_top)))
+        else:
+            # set to None 1/3 of the time
+            wall["top"] = None
+        
+
+        if choice([True, False]):
+            # choose option from list for wall option top and remove it
+            wall["left"] = wall_option_left.pop(wall_option_left.index(choice(wall_option_left)))
+        else:
+            # set to None 1/3 of the time
+            wall["left"] = None
+
+        wall["colour"] = choice(COLOURS)
+        
+        for wal in walls:
+            if wall["top"] == wal["top"] and wal["top"] != None and wall["left"] == wal["left"] and wal["left"] != None:
+                valid = False
+            
+            if wal == wall:
+                valid = False
+
+        if not valid:
+            wall_option_top.append(wall["top"])
+            wall_option_left.append(wall["left"])
+            continue
+        else: 
+            walls.append(wall)
 
 
-root = tk.Tk()
+    return walls
 
-def destroy_window():
-    global mainloop, setup_loop
-    mainloop = False
-    setup_loop = False
+# Evaluate rule
+def evaluate_rule(rooms, rule):
+    global TYPES, COLOURS, STYLES
+    if rule["obj"]:
+        req_count = 3 - [rule[j] for j in ["style", "type", "colour"]].count(None)
+        best_score = 0
+        for room in rooms:
+            if not (rule["room_top"] == rooms[room]["top"] or rule["room_top"] == None):
+                continue
 
-#Create Root Window
-root.attributes('-fullscreen', True)
-root.protocol("WM_DELETE_WINDOW", destroy_window)
+            if not (rule["room_left"] == rooms[room]["left"] or rule["room_left"] == None):
+                continue
+
+            for obj_type in TYPES:
+                score = 1
+                if rooms[room][obj_type]["style"] == None:
+                    continue
+
+                if not (rule["type"] == obj_type or rule["type"] == None): 
+                    score -= (1/req_count)
+
+                if not ((rule["style"] == rooms[room][obj_type]["style"] or rule["style"] == None) and rooms[room][obj_type]["style"] != None):
+                    score -= (1/req_count)
+ 
+                if not (rule["colour"] == rooms[room][obj_type]["colour"] or rule["colour"] == None):
+                    score -= (1/req_count)
+                
+                if score > best_score:
+                    best_score = score
+                    
+        return best_score
+
+    else:
+        for room in rooms:
+            if not (rule["top"] == rooms[room]["top"] or rule["top"] == None):
+                continue
+
+            if not (rule["left"] == rooms[room]["left"] or rule["left"] == None):
+                continue
+
+            if not (rule["colour"] == rooms[room]["colour"]):
+                continue
+
+            return 1
+        return 0
+
+
+#SETUP SCREEN
+def draw_setup():
+    global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules, sleep_frames
+     
+    draw_asset("back")
+        
+    draw_asset("setup_menu")
+
+    draw_asset(f"numbers/number_{num_rules}", (286, 149))
+
+    draw_asset(f"numbers/number_{num_wall_rules}", (297, 164))
+    
+    if sleep_frames > 0:
+        sleep_rec = Image.new("RGBA", canvas.size)
+        ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
+        font = ImageFont.truetype("assets/pixel_font.ttf", 48)
+        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
+        
+        draw_img(sleep_rec)
+
+        sleep_frames -= 1
+
+    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+    canvas_label.config(image = canvas_tk)
+
+def increment_num_rules():
+    global num_rules
+    num_rules %= 6
+    num_rules += 1
+
+def dincrement_num_rules():
+    global num_rules
+    if num_rules >= 2:
+        num_rules += 5
+        num_rules %= 6
+    else:
+        num_rules = 6
+
+
+def increment_num_wall_rules():
+    global num_wall_rules
+    num_wall_rules %= 4
+    num_wall_rules += 1
+
+
+def dincrement_num_wall_rules():
+    global num_wall_rules
+    if num_wall_rules >= 2:
+        num_wall_rules += 3
+        num_wall_rules %= 4
+    else:
+        num_wall_rules = 4
+
+def handle_keypress_setup(e):
+    global setup_loop, sleep_frames
+
+    if sleep_frames > 0:
+        return
+
+    elif e.keysym.lower() == "j":
+        dincrement_num_rules()
+
+    elif e.keysym.lower() == "l":
+        increment_num_rules()
+
+    elif e.keysym.lower() == "left":
+        dincrement_num_wall_rules()
+
+    elif e.keysym.lower() == "right":
+        increment_num_wall_rules()
+    
+    elif e.keysym.lower() == "down":
+        sleep_frames = 101   
+
+
+#SETUP
+
+root.bind("<KeyPress>", handle_keypress_setup)
+update_count = 0
+setup_sleep = True
+while setup_loop:
+    root.update_idletasks()
+    root.update()
+    draw_setup()
+    if sleep_frames == 52:
+        setup_loop = False
+    update_count += 1
+root.unbind("<KeyPress>")
+
+rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
+
+#MAINLOOP SCREEN
+
+def create_object(room, rooms, obj_type):
+    #Open object or placeholder
+    if rooms[room][obj_type]["style"] != None:
+        rooms[room][obj_type]["img"] = open_asset(f'{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}')
+
+    else:
+        rooms[room][obj_type]["img"] = open_asset("blank")
+    
+    draw_img(rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0]+1, rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]+1))
+
+def create_rooms(rooms):
+    for room in rooms.keys():
+        #Open room (or use placeholder):
+        rooms[room]["img"]= open_asset(f'''{room}/room/{room}_{rooms[room]["colour"]}''')
+
+        #Place in middle of canvas
+        xpos = 298
+        if rooms[room]["left"]:
+            xpos -= 192
+        
+        #Place on floor (or on other room)
+        ypos = 80
+        if not rooms[room]["top"]:
+            ypos += 128
+        
+        #Paste onto canvas (With transparency)
+        draw_img(rooms[room]["img"], (xpos, ypos))
+
+        rooms[room]["xpos"] = xpos
+        rooms[room]["ypos"] = ypos
+
+        #Create objects
+        for obj in TYPES:
+            create_object(room, rooms, obj)
+        
+
+
+def draw_canvas():
+    global canvas, canvas_label, canvas_tk, CURSOR_ORDER, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames, days, redraw
+    
+    #Load and Place Background
+    draw_asset("back")
+
+    #Draw rooms and objects onto canvas
+    create_rooms(rooms)
+    
+    #Draw cursor
+    cursor_loc = CURSOR_ORDER[cursor_pos]
+    cursor_room = rooms[cursor_loc[0]]
+    cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
+
+    if cursor_obj["img"].size == (32,32):
+        cursor_img = open_asset("cursor_square")
+        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
+        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
+
+    elif cursor_obj["img"].size == (32,64):
+        cursor_img = open_asset("cursor_tall")
+        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
+        cur_ypos = cursor_obj["ypos"]-63+cursor_room["ypos"]
+
+    elif cursor_obj["img"].size == (64,32):
+        cursor_img = open_asset("cursor_wide")
+        cur_xpos = cursor_obj["xpos"]-63+cursor_room["xpos"]
+        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
+    
+    else:
+        cursor_img = open_asset("cursor_room")
+        cur_xpos = cursor_obj["xpos"]
+        cur_ypos = cursor_obj["ypos"]
+
+    draw_img(cursor_img, (cur_xpos, cur_ypos))
+        
+    if update_to_do:
+        update_to_do = False
+        #draw to do list
+        to_do = open_asset("to_do")
+
+        draw_asset("to_do_stuff", (11,20), to_do)
+
+        n_smileys = len(glob.glob("assets/smileys/*.png"))
+        squiggle_y = 38
+    
+        drawn_wall_label = False
+        
+        squiggles = [x for x in range(1,n_smileys+1)]
+
+        for rule in rules: 
+            if not rule["obj"] and not drawn_wall_label:
+                drawn_wall_label = True
+                draw_asset("to_do_walls", (11, squiggle_y), to_do)
+                squiggle_y += 18
+            
+            if len(squiggles) == 0:
+                squiggles = [x for x in range(1,n_smileys+1)]
+            
+
+            draw_asset(f"squiggles/squiggle_{squiggles.pop(randint(0, len(squiggles)-1))}", (11, squiggle_y), to_do)
+
+            draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), to_do)
+
+            squiggle_y += 18
+
+
+    draw_img(to_do, (576-int(92*to_do_pos),0) )
+
+    draw_asset("sleep", (0, 0-int(336*(1-sleep_pos))))
+
+    if sleep_frames > 0:
+        # sleeping
+        redraw = True
+        sleep_rec = Image.new("RGBA", canvas.size)
+        ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
+        font = ImageFont.truetype("assets/pixel_font.ttf", 48)
+        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
+        draw_img(sleep_rec)
+        sleep_frames -= 1
+
+    if sleep_frames == 10:
+        show_to_do()
+
+    if sleep_frames == 50:
+        hide_sleep()
+        days += 1
+        update_to_do = True
+    
+    #Convert Canvas to Tk Label and draw to screen
+    #Resample to screen size using NN
+    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+    canvas_label.config(image = canvas_tk)
+
 
 def cursor_next(e):
     global cursor_pos, redraw
@@ -139,8 +585,6 @@ def hide_to_do(e=None):
             pass
         to_do_after_id = root.after(1, hide_to_do)
     to_do_pos = max(to_do_pos, 0)
-
-
 
 def show_to_do(e=None):
     global redraw, to_do_pos, to_do_after_id    
@@ -180,7 +624,7 @@ def show_sleep(e=None):
     global redraw, sleep_pos, sleep_after_id, sleep_frames
 
     if e != None and sleep_frames != 0:
-        returni    
+        return 
     redraw = True
     hide_to_do()
 
@@ -196,12 +640,9 @@ def show_sleep(e=None):
 
 
 def commit_sleep():
-    global redraw, update_to_do, sleep_frames
-#    hide_sleep()
+    global redraw, sleep_frames
     redraw = True
-    sleep_frames = 100    
-#    update_to_do = True
-#    show_to_do()
+    sleep_frames = 101
     
 
 def handle_keypress(e):
@@ -210,7 +651,7 @@ def handle_keypress(e):
     if sleep_frames != 0:
         return
 
-    cursor_loc = cursor_order[cursor_pos]
+    cursor_loc = CURSOR_ORDER[cursor_pos]
     cursor_room = rooms[cursor_loc[0]]
     cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
     
@@ -279,492 +720,10 @@ def handle_keypress(e):
 
 
     redraw = True
-    
 
-    
-WIDTH = root.winfo_screenwidth()
-HEIGHT = root.winfo_screenheight()
-
-if WIDTH/HEIGHT - 16/9 > 0.02:
-    #Screen is wider than expected
-    WIDTH = int(HEIGHT* 16/9)
-elif WIDTH/HEIGHT - 16/9 < 0.2:
-    #Screen is taller than expected
-    HEIGHT = int(WIDTH * 9/16)
-
-
-#Initialise Canvas
-canvas = Image.new(mode= "RGBA", size=(596,336))
-
-canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-canvas_label = tk.Label()
-canvas_label.place(x=0, y=0)
-
-
-
-def draw_setup():
-    global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules, sleep_frames
-     
-    #Load and Place Background
-    try:
-        back_img = Image.open('assets/back.png') # If house.png does not open -
-    except FileNotFoundError:
-        print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
-        back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
-
-    #Place background on canvas
-    back_img = back_img.resize((596, 336), Image.NEAREST)
-    Image.Image.paste(canvas, back_img, (0, 0))
-        
-    #Load and Place Setup
-    setup_img = Image.open('assets/setup_menu.png')
-    #Place setup menu on canvas
-    Image.Image.paste(canvas, setup_img, (0, 0), setup_img.convert("RGBA"))
-
-    #Load and Place num rules
-    num_rules_img = Image.open(f'''assets/numbers/number_{num_rules}.png''')
-    #Place num rules on canvas
-    Image.Image.paste(canvas, num_rules_img, (286, 149), num_rules_img.convert("RGBA"))
-
-    #Load and Place num wall rules
-    num_wall_rules_img = Image.open(f'''assets/numbers/number_{num_wall_rules}.png''')
-    #Place num rule walls on canvas
-    Image.Image.paste(canvas, num_wall_rules_img, (297, 164), num_wall_rules_img.convert("RGBA"))
-
-    if sleep_frames > 0:
-        sleep_rec = Image.new("RGBA", canvas.size)
-        ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
-        font = ImageFont.truetype("assets/pixel_font.ttf", 48)
-        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
-        Image.Image.paste(canvas, sleep_rec, (0,0), sleep_rec.convert("RGBA"))
-        sleep_frames -= 1
-
-    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-    canvas_label.config(image = canvas_tk)
-
-
-
-def increment_num_rules():
-    global num_rules
-    num_rules %= 6
-    num_rules += 1
-
-
-def dincrement_num_rules():
-    global num_rules
-    if num_rules >= 2:
-        num_rules += 5
-        num_rules %= 6
-    else:
-        num_rules = 6
-
-
-def increment_num_wall_rules():
-    global num_wall_rules
-    num_wall_rules %= 4
-    num_wall_rules += 1
-
-
-def dincrement_num_wall_rules():
-    global num_wall_rules
-    if num_wall_rules >= 2:
-        num_wall_rules += 3
-        num_wall_rules %= 4
-    else:
-        num_wall_rules = 4
-
-
-def handle_keypress_setup(e):
-    global setup_loop, sleep_frames
-
-    if sleep_frames > 0:
-        return
-
-    elif e.keysym.lower() == "j":
-        dincrement_num_rules()
-
-    elif e.keysym.lower() == "l":
-        increment_num_rules()
-
-    elif e.keysym.lower() == "left":
-        dincrement_num_wall_rules()
-
-    elif e.keysym.lower() == "right":
-        increment_num_wall_rules()
-    
-    elif e.keysym.lower() == "down":
-        sleep_frames = 101   
-
-root.bind("<KeyPress>", handle_keypress_setup)
-
-x = 0
-setup_sleep = True
-while setup_loop:
-    root.update_idletasks()
-    root.update()
-    draw_setup()
-    if sleep_frames == 52:
-        setup_loop = False
-    x += 1
-
-
-#RULES
-
-#check 2 rules are compatable 
-def rule_compatability(rule1, rule2):
-    if rule1 == rule2:
-        return False
-    
-    if rule1["room_top"] == rule2["room_top"] and rule1["room_top"] != None and rule1["type"] == rule2["type"] and rule1["type"] != None:
-        return False
-
-    return True
-
-
-#make rules for objects
-rules = []
-
-type_options = types*2
-
-class VarietyException(Exception):
-    pass
-
-while len(rules) < num_rules:
-    try:
-        obj_variety = 192
-        pos_variety = 12
-        target = 12
-    
-        rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None}
-    
-        rule["room_top"] = choice([True, False, None, None])
-        if rule["room_top"] != None:
-            obj_variety /= 2
-            pos_variety /=2
-            if obj_variety * pos_variety <= target:
-                raise(VarietyException)
-
-        rule["room_left"] = choice([True, False, None, None])
-        if rule["room_left"] != None:
-            obj_variety /= 2
-            pos_variety /= 2
-            if obj_variety * pos_variety <= target: 
-                raise(VarietyException) 
-
-        if choice([True, False]):
-            rule["type"] = type_options.pop(type_options.index(choice(type_options)))
-        else:
-            rule["type"] = None
-        
-        if rule["type"] != None:
-            obj_variety /= 3
-            pos_variety /= 3
-            if obj_variety * pos_variety <= target:    
-                raise(VarietyException)
-
-        rule["colour"] = choice(colours+([None]))
-        if rule["colour"] != None:
-            obj_variety /= 4
-            if obj_variety * pos_variety <= target:
-                raise(VarietyException) 
-
-        rule["style"] = choice(styles+([None]))
-        if rule["style"] != None:
-            obj_variety /= 4
-            if obj_variety * pos_variety <= target:
-                raise(VarietyException)
-
-        raise(VarietyException)
-
-    except VarietyException:
-        comp = True
-        for rul in rules:
-            if not comp:
-                break
-            else:
-                comp = rule_compatability(rule, rul)
-        if comp:
-            rules.append(rule)   
-        elif rule["type"] != None:
-            type_options.append(rule["type"])
-
-
-
-# make rules for room colour
-walls = []
-wall_option_top = [True, True, False, False]
-wall_option_left = [True, True, False, False]
-
-while len(walls) < num_wall_rules:
-    wall = {"obj": False, "top": None, "left": None, "colour": None}
-    valid = True
-    
-    if choice([True, False]):
-        # choose option from list for wall option top and remove it
-        wall["top"] = wall_option_top.pop(wall_option_top.index(choice(wall_option_top)))
-    else:
-        # set to None 1/3 of the time
-        wall["top"] = None
-    
-
-    if choice([True, False]):
-        # choose option from list for wall option top and remove it
-        wall["left"] = wall_option_left.pop(wall_option_left.index(choice(wall_option_left)))
-    else:
-        # set to None 1/3 of the time
-        wall["left"] = None
-
-    wall["colour"] = choice(colours)
-     
-    for wal in walls:
-        if wall["top"] == wal["top"] and wal["top"] != None and wall["left"] == wal["left"] and wal["left"] != None:
-            valid = False
-        
-        if wal == wall:
-            valid = False
-
-    if not valid:
-        wall_option_top.append(wall["top"])
-        wall_option_left.append(wall["left"])
-        continue
-    else: 
-        walls.append(wall)
-
-rules += walls
-
-sys.stdout = sys.__stdout__
-
-for rule in rules:
-    print(rule)
-
-sys.stdout = open(os.devnull, "w")
-
-
-# Evaluate rule
-def evaluate_rule(rooms, rule):
-    if rule["obj"]:
-        req_count = 3 - [rule[j] for j in ["style", "type", "colour"]].count(None)
-        best_score = 0
-        for room in rooms:
-            if not (rule["room_top"] == rooms[room]["top"] or rule["room_top"] == None):
-                continue
-
-            if not (rule["room_left"] == rooms[room]["left"] or rule["room_left"] == None):
-                continue
-
-            for obj_type in types:
-                score = 1
-                if rooms[room][obj_type]["style"] == None:
-                    continue
-
-                if not (rule["type"] == obj_type or rule["type"] == None): 
-                    score -= (1/req_count)
-
-                if not ((rule["style"] == rooms[room][obj_type]["style"] or rule["style"] == None) and rooms[room][obj_type]["style"] != None):
-                    score -= (1/req_count)
- 
-                if not (rule["colour"] == rooms[room][obj_type]["colour"] or rule["colour"] == None):
-                    score -= (1/req_count)
-                
-                if score > best_score:
-                    best_score = score
-                    
-        return best_score
-
-    else:
-        for room in rooms:
-            if not (rule["top"] == rooms[room]["top"] or rule["top"] == None):
-                continue
-
-            if not (rule["left"] == rooms[room]["left"] or rule["left"] == None):
-                continue
-
-            if not (rule["colour"] == rooms[room]["colour"]):
-                continue
-
-            return 1
-
-        return 0
-
-
-def create_object(room, rooms, obj_type):
-    #Open object or placeholder
-    if rooms[room][obj_type]["style"] != None:
-        try:
-            rooms[room][obj_type]["img"] = Image.open(f'''assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png''')
-        except FileNotFoundError:
-            print(f'''Failed opening: assets/{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}.png falling back to assets/placeholder.png''')
-            rooms[room][obj_type]["img"] = Image.open(f'''assets/placeholder.png''')
-
-    else:
-        rooms[room][obj_type]["img"] = Image.open("assets/blank.png")
-
-    #Paste (With Alpha Mask), to the top left of room (TEMP LOCATION)
-    try:
-        Image.Image.paste(canvas, rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0]+1, rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]+1), rooms[room][obj_type]["img"].convert("RGBA"))
-    except KeyError:
-        pass
-
-
-def create_rooms(rooms):
-    for room in rooms.keys():
-        #Open room (or use placeholder):
-        try:
-            rooms[room]["img"]= Image.open(f'''assets/{room}/room/{room}_{rooms[room]["colour"]}.png''')
-        except FileNotFoundError:
-            try:
-                print(f'''Failed opening: assets/{room}/room/{room}_{rooms[room]["colour"]} falling back to assets/{room}/room/{room}_blank.png''')
-                rooms[room]["img"] = Image.open(f'''assets/{room}/room/{room}_blank.png''')
-            except FileNotFoundError:
-                print(f'''Failed opening: assets/{room}/room/{room}_placeholder.png falling back to assets/room_blank.png''') 
-                rooms[room]["img"] = Image.open(f'''assets/room_placeholder.png''')
-
-        #Resize Room (Rooms are upsampled 2x to make art easier) with Nearest Neighbour Resampling (best for pixel art)
-        rooms[room]["img"] = rooms[room]["img"].resize((192, 128), Image.NEAREST)
-        
-
-        #Place in middle
-        xpos = 298
-        if rooms[room]["left"]:
-            xpos -= 192
-        
-        #Place on floor (or on other room)
-        ypos = 80
-        if not rooms[room]["top"]:
-            ypos += 128
-        
-        #Paste onto canvas (With transparency)
-        Image.Image.paste(canvas, rooms[room]["img"], (xpos, ypos), rooms[room]["img"].convert("RGBA"))
-
-        rooms[room]["xpos"] = xpos
-        rooms[room]["ypos"] = ypos
-
-        #Create objects
-        for obj in types:
-            create_object(room, rooms, obj)
-        
-
-
-def draw_canvas():
-    global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames, days, redraw
-    
-    #Load and Place Background
-    try:
-        back_img = Image.open('assets/back.png') # If house.png does not open -
-    except FileNotFoundError:
-        print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
-        back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
-
-    #Place background on canvas
-    back_img = back_img.resize((596, 336), Image.NEAREST)
-    Image.Image.paste(canvas, back_img, (0, 0))
-
-
-    #Draw rooms and objects onto canvas
-    create_rooms(rooms)
-    
-    #Draw cursor
-    cursor_loc = cursor_order[cursor_pos]
-    cursor_room = rooms[cursor_loc[0]]
-    cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
-
-    if cursor_obj["img"].size == (32,32):
-        cursor_img = Image.open("assets/cursor_square.png")
-        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
-        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
-
-    elif cursor_obj["img"].size == (32,64):
-        cursor_img = Image.open("assets/cursor_tall.png")
-        cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
-        cur_ypos = cursor_obj["ypos"]-63+cursor_room["ypos"]
-
-    elif cursor_obj["img"].size == (64,32):
-        cursor_img = Image.open("assets/cursor_wide.png")
-        cur_xpos = cursor_obj["xpos"]-63+cursor_room["xpos"]
-        cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
-    
-    else:
-        cursor_img = Image.open("assets/cursor_room.png")
-        cur_xpos = cursor_obj["xpos"]
-        cur_ypos = cursor_obj["ypos"]
-
-    
-    Image.Image.paste(canvas, cursor_img, (cur_xpos,cur_ypos), cursor_img.convert("RGBA"))
-    
-    if update_to_do:
-        update_to_do = False
-        #draw to do list
-        to_do = Image.open("assets/to_do.png").convert("RGBA")
-    
-        stuff = Image.open("assets/to_do_stuff.png")
-        Image.Image.paste(to_do, stuff, (11,20), stuff.convert("RGBA"))
-    
-        n_smileys = len(glob.glob("assets/smileys/*.png"))
-        squiggle_y = 38
-    
-        drawn_wall_label = False
-        
-        squiggles = []
-
-        for rule in rules: 
-            if not rule["obj"] and not drawn_wall_label:
-                drawn_wall_label = True
-                walls = Image.open("assets/to_do_walls.png")
-                Image.Image.paste(to_do, walls, (11,squiggle_y), walls.convert("RGBA"))
-                squiggle_y += 18
-            
-            if len(squiggles) == 0:
-                squiggles = glob.glob("assets/squiggles/*.png")
-            
-            squiggle = Image.open(squiggles.pop(randint(0,len(squiggles)-1)))
-            Image.Image.paste(to_do, squiggle, (11,squiggle_y), squiggle.convert("RGBA"))
-
-            rule_score = evaluate_rule(rooms, rule)
-
-            smiley = Image.open(f"assets/smileys/smiley_{round(rule_score * (n_smileys-1))}.png")
-            Image.Image.paste(to_do, smiley, (11,squiggle_y), smiley.convert("RGBA"))
-
-            squiggle_y += 18
-
-
-    Image.Image.paste(canvas, to_do, (576-int(92*to_do_pos),0), to_do.convert("RGBA"))
-
-
-    sleep = Image.open("assets/sleep.png")
-
-    Image.Image.paste(canvas, sleep, (0, 0-int(336*(1-sleep_pos))), sleep.convert("RGBA"))
-
-
-    if sleep_frames > 0:
-        # sleeping
-        redraw = True
-        sleep_rec = Image.new("RGBA", canvas.size)
-        ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
-        font = ImageFont.truetype("assets/pixel_font.ttf", 48)
-        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
-        Image.Image.paste(canvas, sleep_rec, (0,0), sleep_rec.convert("RGBA"))
-        sleep_frames -= 1
-
-    if sleep_frames == 10:
-        show_to_do()
-
-    if sleep_frames == 50:
-        hide_sleep()
-        days += 1
-        update_to_do = True
-    
-    #Convert Canvas to Tk Label and draw to screen
-    #Resample to screen size using NN
-    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-    canvas_label.config(image = canvas_tk)
-
-    
-
-root.unbind("<KeyPress>")
+#MAINLOOP
 root.bind("<KeyPress>", handle_keypress)
 
-
-#Mainloop
 while mainloop:
     root.update_idletasks()
     root.update()
@@ -773,7 +732,6 @@ while mainloop:
         redraw = False
         draw_canvas()
 
-    x += 1
+    update_count += 1
 
 root.destroy()
-

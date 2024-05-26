@@ -23,11 +23,12 @@ cursor_order = [("bathroom", "wall"), ("bathroom", "hanging"), ("bathroom", "tat
 to_do = Image.open("assets/to_do.png")
 update_to_do = True
 sleep_pos = 0
-sleep_frames = 51
+sleep_frames = 0 
 days = 0
 num_rules = 4
 num_wall_rules = 2
 setup_loop = True
+sys.stdout = open(os.devnull, 'w')
 
 
 #Initial Room Definition
@@ -295,6 +296,117 @@ elif WIDTH/HEIGHT - 16/9 < 0.2:
 #Initialise Canvas
 canvas = Image.new(mode= "RGBA", size=(596,336))
 
+canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+canvas_label = tk.Label()
+canvas_label.place(x=0, y=0)
+
+
+
+def draw_setup():
+    global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules, sleep_frames
+     
+    #Load and Place Background
+    try:
+        back_img = Image.open('assets/back.png') # If house.png does not open -
+    except FileNotFoundError:
+        print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
+        back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
+
+    #Place background on canvas
+    back_img = back_img.resize((596, 336), Image.NEAREST)
+    Image.Image.paste(canvas, back_img, (0, 0))
+        
+    #Load and Place Setup
+    setup_img = Image.open('assets/setup_menu.png')
+    #Place setup menu on canvas
+    Image.Image.paste(canvas, setup_img, (0, 0), setup_img.convert("RGBA"))
+
+    #Load and Place num rules
+    num_rules_img = Image.open(f'''assets/numbers/number_{num_rules}.png''')
+    #Place num rules on canvas
+    Image.Image.paste(canvas, num_rules_img, (286, 149), num_rules_img.convert("RGBA"))
+
+    #Load and Place num wall rules
+    num_wall_rules_img = Image.open(f'''assets/numbers/number_{num_wall_rules}.png''')
+    #Place num rule walls on canvas
+    Image.Image.paste(canvas, num_wall_rules_img, (297, 164), num_wall_rules_img.convert("RGBA"))
+
+    if sleep_frames > 0:
+        sleep_rec = Image.new("RGBA", canvas.size)
+        ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
+        font = ImageFont.truetype("assets/pixel_font.ttf", 48)
+        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
+        Image.Image.paste(canvas, sleep_rec, (0,0), sleep_rec.convert("RGBA"))
+        sleep_frames -= 1
+
+    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+    canvas_label.config(image = canvas_tk)
+
+
+
+def increment_num_rules():
+    global num_rules
+    num_rules %= 6
+    num_rules += 1
+
+
+def dincrement_num_rules():
+    global num_rules
+    if num_rules >= 2:
+        num_rules += 5
+        num_rules %= 6
+    else:
+        num_rules = 6
+
+
+def increment_num_wall_rules():
+    global num_wall_rules
+    num_wall_rules %= 4
+    num_wall_rules += 1
+
+
+def dincrement_num_wall_rules():
+    global num_wall_rules
+    if num_wall_rules >= 2:
+        num_wall_rules += 3
+        num_wall_rules %= 4
+    else:
+        num_wall_rules = 4
+
+
+def handle_keypress_setup(e):
+    global setup_loop, sleep_frames
+
+    if sleep_frames > 0:
+        return
+
+    elif e.keysym.lower() == "j":
+        dincrement_num_rules()
+
+    elif e.keysym.lower() == "l":
+        increment_num_rules()
+
+    elif e.keysym.lower() == "left":
+        dincrement_num_wall_rules()
+
+    elif e.keysym.lower() == "right":
+        increment_num_wall_rules()
+    
+    elif e.keysym.lower() == "down":
+        sleep_frames = 101   
+
+root.bind("<KeyPress>", handle_keypress_setup)
+
+x = 0
+setup_sleep = True
+while setup_loop:
+    root.update_idletasks()
+    root.update()
+    draw_setup()
+    if sleep_frames == 52:
+        setup_loop = False
+    x += 1
+
 
 #RULES
 
@@ -420,11 +532,12 @@ while len(walls) < num_wall_rules:
 
 rules += walls
 
+sys.stdout = sys.__stdout__
+
 for rule in rules:
     print(rule)
 
-
-sys.stdout = open(os.devnull, 'w')
+sys.stdout = open(os.devnull, "w")
 
 
 # Evaluate rule
@@ -532,11 +645,6 @@ def create_rooms(rooms):
         
 
 
-canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-canvas_label = tk.Label()
-canvas_label.place(x=0, y=0)
-
-
 def draw_canvas():
     global canvas, canvas_label, canvas_tk, cursor_order, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames, days, redraw
     
@@ -628,7 +736,7 @@ def draw_canvas():
         sleep_rec = Image.new("RGBA", canvas.size)
         ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
         font = ImageFont.truetype("assets/pixel_font.ttf", 48)
-        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {days}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
+        ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
         Image.Image.paste(canvas, sleep_rec, (0,0), sleep_rec.convert("RGBA"))
         sleep_frames -= 1
 
@@ -646,96 +754,6 @@ def draw_canvas():
     canvas_label.config(image = canvas_tk)
 
     
-
-def draw_setup():
-    global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules
-     
-    #Load and Place Background
-    try:
-        back_img = Image.open('assets/back.png') # If house.png does not open -
-    except FileNotFoundError:
-        print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
-        back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
-
-    #Place background on canvas
-    back_img = back_img.resize((596, 336), Image.NEAREST)
-    Image.Image.paste(canvas, back_img, (0, 0))
-        
-    #Load and Place Setup
-    setup_img = Image.open('assets/setup_menu.png')
-    #Place setup menu on canvas
-    Image.Image.paste(canvas, setup_img, (0, 0), setup_img.convert("RGBA"))
-
-    #Load and Place num rules
-    num_rules_img = Image.open(f'''assets/numbers/number_{num_rules}.png''')
-    #Place num rules on canvas
-    Image.Image.paste(canvas, num_rules_img, (286, 149), num_rules_img.convert("RGBA"))
-
-    #Load and Place num wall rules
-    num_wall_rules_img = Image.open(f'''assets/numbers/number_{num_wall_rules}.png''')
-    #Place num rule walls on canvas
-    Image.Image.paste(canvas, num_wall_rules_img, (297, 164), num_wall_rules_img.convert("RGBA"))
-
-    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-    canvas_label.config(image = canvas_tk)
-
-
-def increment_num_rules():
-    global num_rules
-    num_rules %= 6
-    num_rules += 1
-
-
-def dincrement_num_rules():
-    global num_rules
-    if num_rules >= 2:
-        num_rules += 5
-        num_rules %= 6
-    else:
-        num_rules = 6
-
-
-def increment_num_wall_rules():
-    global num_wall_rules
-    num_wall_rules %= 4
-    num_wall_rules += 1
-
-
-def dincrement_num_wall_rules():
-    global num_wall_rules
-    if num_wall_rules >= 2:
-        num_wall_rules += 3
-        num_wall_rules %= 4
-    else:
-        num_wall_rules = 4
-
-
-def handle_keypress_setup(e):
-    global setup_loop
-
-    if e.keysym.lower() == "j":
-        dincrement_num_rules()
-
-    elif e.keysym.lower() == "l":
-        increment_num_rules()
-
-    elif e.keysym.lower() == "left":
-        dincrement_num_wall_rules()
-
-    elif e.keysym.lower() == "right":
-        increment_num_wall_rules()
-    
-    elif e.keysym.lower() == "down":
-        setup_loop = False    
-
-root.bind("<KeyPress>", handle_keypress_setup)
-
-x = 0
-while setup_loop:
-    root.update_idletasks()
-    root.update()
-    draw_setup()
-    x += 1
 
 root.unbind("<KeyPress>")
 root.bind("<KeyPress>", handle_keypress)

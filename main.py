@@ -6,6 +6,7 @@ from random import *
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 from math import floor
 import glob
+import sys, os
 
 
 redraw = True
@@ -26,7 +27,7 @@ sleep_frames = 51
 days = 0
 num_rules = 4
 num_wall_rules = 2
-setup_loop = False
+setup_loop = True
 
 
 #Initial Room Definition
@@ -229,10 +230,10 @@ def handle_keypress(e):
         hide_sleep(e)
 
 
-    elif e.keysym.lower() == "q":
+    elif e.keysym.lower() == "j":
         cursor_prev(e)
 
-    elif e.keysym.lower() == "w":
+    elif e.keysym.lower() == "l":
         cursor_next(e)
 
 
@@ -423,6 +424,8 @@ for rule in rules:
     print(rule)
 
 
+sys.stdout = open(os.devnull, 'w')
+
 
 # Evaluate rule
 def evaluate_rule(rooms, rule):
@@ -444,7 +447,7 @@ def evaluate_rule(rooms, rule):
                 if not (rule["type"] == obj_type or rule["type"] == None): 
                     score -= (1/req_count)
 
-                if not (rule["style"] == rooms[room][obj_type]["style"] or rule["style"] == None):
+                if not ((rule["style"] == rooms[room][obj_type]["style"] or rule["style"] == None) and rooms[room][obj_type]["style"] != None):
                     score -= (1/req_count)
  
                 if not (rule["colour"] == rooms[room][obj_type]["colour"] or rule["colour"] == None):
@@ -453,7 +456,7 @@ def evaluate_rule(rooms, rule):
                 if score > best_score:
                     best_score = score
                     
-        return round(floor(best_score*10)/10,1)
+        return best_score
 
     else:
         for room in rooms:

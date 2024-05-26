@@ -442,7 +442,7 @@ rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
 
 #MAINLOOP SCREEN
 
-def create_object(room, rooms, obj_type):
+def draw_object(room, rooms, obj_type):
     #Open object or placeholder
     if rooms[room][obj_type]["style"] != None:
         rooms[room][obj_type]["img"] = open_asset(f'{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}')
@@ -452,7 +452,7 @@ def create_object(room, rooms, obj_type):
     
     draw_img(rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0]+1, rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]+1))
 
-def create_rooms(rooms):
+def draw_rooms(rooms):
     for room in rooms.keys():
         #Open room (or use placeholder):
         rooms[room]["img"]= open_asset(f'''{room}/room/{room}_{rooms[room]["colour"]}''')
@@ -475,7 +475,8 @@ def create_rooms(rooms):
 
         #Create objects
         for obj in TYPES:
-            create_object(room, rooms, obj)
+            draw_object(room, rooms, obj)
+
         
 def create_to_do():
     #draw to do list
@@ -509,17 +510,9 @@ def create_to_do():
     
     return td
 
-
-def draw_canvas():
-    global canvas, canvas_label, canvas_tk, CURSOR_ORDER, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames, days
-    
-    #Load and Place Background
-    draw_asset("back")
-
-    #Draw rooms and objects onto canvas
-    create_rooms(rooms)
-    
-    #Draw cursor
+def create_cursor():
+    global cursor_pos
+    #create cursor
     cursor_loc = CURSOR_ORDER[cursor_pos]
     cursor_room = rooms[cursor_loc[0]]
     cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
@@ -543,8 +536,20 @@ def draw_canvas():
         cursor_img = open_asset("cursor_room")
         cur_xpos = cursor_obj["xpos"]
         cur_ypos = cursor_obj["ypos"]
+    
+    return cursor_img, (cur_xpos, cur_ypos)
 
-    draw_img(cursor_img, (cur_xpos, cur_ypos))
+
+def draw_canvas():
+    global canvas, canvas_label, canvas_tk, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames, days
+    
+    #Load and Place Background
+    draw_asset("back")
+
+    #Draw rooms and objects onto canvas
+    draw_rooms(rooms)
+
+    draw_img(create_cursor())
         
     if update_to_do:
         update_to_do = False
@@ -628,6 +633,7 @@ def show_sleep(e=None):
 
     if e != None and sleep_frames != 0:
         return 
+    
     hide_to_do()
 
     if sleep_pos < 1:

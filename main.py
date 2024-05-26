@@ -680,22 +680,68 @@ def draw_setup():
     canvas_label.config(image = canvas_tk)
 
 
+def increment_num_rules():
+    global num_rules
+    num_rules %= 6
+    num_rules += 1
 
-#Mainloop
+
+def dincrement_num_rules():
+    global num_rules
+    if num_rules >= 2:
+        num_rules += 5
+        num_rules %= 6
+    else:
+        num_rules = 6
+
+
+def increment_num_wall_rules():
+    global num_wall_rules
+    num_wall_rules %= 4
+    num_wall_rules += 1
+
+
+def dincrement_num_wall_rules():
+    global num_wall_rules
+    if num_wall_rules >= 2:
+        num_wall_rules += 3
+        num_wall_rules %= 4
+    else:
+        num_wall_rules = 4
+
+
+def handle_keypress_setup(e):
+    global setup_loop
+
+    if e.keysym.lower() == "j":
+        dincrement_num_rules()
+
+    elif e.keysym.lower() == "l":
+        increment_num_rules()
+
+    elif e.keysym.lower() == "left":
+        dincrement_num_wall_rules()
+
+    elif e.keysym.lower() == "right":
+        increment_num_wall_rules()
+    
+    elif e.keysym.lower() == "down":
+        setup_loop = False    
+
+root.bind("<KeyPress>", handle_keypress_setup)
+
 x = 0
 while setup_loop:
     root.update_idletasks()
     root.update()
     draw_setup()
+    x += 1
 
-
-#root.bind("<Right>",cursor_next)
-#root.bind("<Left>", cursor_prev)
-#root.bind("<Down>", hide_to_do
-#root.bind("<Up>", show_to_do)
+root.unbind("<KeyPress>")
 root.bind("<KeyPress>", handle_keypress)
 
 
+#Mainloop
 while mainloop:
     root.update_idletasks()
     root.update()

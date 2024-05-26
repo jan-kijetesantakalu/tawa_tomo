@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days #, SCALE
+global WIDTH, HEIGHT, colours, styles, types, canvas, canvas_label, canvas_tk, cursor_pos, cursor_order, redraw, mainloop, to_do, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days, num_rules, num_wall_rules #, SCALE
 
 
 import tkinter as tk
@@ -24,6 +24,9 @@ update_to_do = True
 sleep_pos = 0
 sleep_frames = 51
 days = 0
+num_rules = 4
+num_wall_rules = 2
+setup_loop = False
 
 
 #Initial Room Definition
@@ -95,8 +98,9 @@ rooms["lounge"]  = {
 root = tk.Tk()
 
 def destroy_window():
-    global mainloop
+    global mainloop, setup_loop
     mainloop = False
+    setup_loop = False
 
 #Create Root Window
 root.attributes('-fullscreen', True)
@@ -171,9 +175,10 @@ def hide_sleep(e=None):
 
 
 def show_sleep(e=None):
-    global redraw, sleep_pos, sleep_after_id
+    global redraw, sleep_pos, sleep_after_id, sleep_frames
+
     if e != None and sleep_frames != 0:
-        return
+        returni    
     redraw = True
     hide_to_do()
 
@@ -199,7 +204,7 @@ def commit_sleep():
 
 def handle_keypress(e):
     global cursor_pos, redraw
-    
+     
     if sleep_frames != 0:
         return
 
@@ -207,51 +212,64 @@ def handle_keypress(e):
     cursor_room = rooms[cursor_loc[0]]
     cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
     
-    if e.char.lower() == "q":
+
+    if e.keysym.lower() == "right":
+        hide_to_do(e)
+
+    elif e.keysym.lower() == "left":
+        show_to_do(e)
+
+    elif e.keysym.lower() == "down":
         if sleep_pos > 0.75:
             commit_sleep()
         else:
             show_sleep(e)
-    
 
-    elif e.char.lower() == "w":
+    elif e.keysym.lower() == "up":
         hide_sleep(e)
 
 
-    elif e.char.lower() == "a":
+    elif e.keysym.lower() == "q":
+        cursor_prev(e)
+
+    elif e.keysym.lower() == "w":
+        cursor_next(e)
+
+
+    elif e.keysym.lower() == "a":
         cursor_obj["colour"] = "red"
     
-    elif e.char.lower() == "s":
+    elif e.keysym.lower() == "s":
         cursor_obj["colour"] = "yellow"
     
-    elif e.char.lower() == "d":
+    elif e.keysym.lower() == "d":
         cursor_obj["colour"] = "green"
 
-    elif e.char.lower() == "f":
+    elif e.keysym.lower() == "f":
         cursor_obj["colour"] = "blue"
     
 
     elif cursor_loc[1] != "wall":
         
-        if e.char.lower() == "z":
+        if e.keysym.lower() == "z":
             if cursor_obj["style"] == "antique":
                 cursor_obj["style"] = None
             else:
                 cursor_obj["style"] = "antique"
 
-        elif e.char.lower() == "x":
+        elif e.keysym.lower() == "x":
             if cursor_obj["style"] == "retro":
                 cursor_obj["style"] = None
             else:
                 cursor_obj["style"] = "retro"
 
-        elif e.char.lower() == "c":
+        elif e.keysym.lower() == "c":
             if cursor_obj["style"] == "modern":
                 cursor_obj["style"] = None
             else:
                 cursor_obj["style"] = "modern"
 
-        elif e.char.lower() == "v":
+        elif e.keysym.lower() == "v":
             if cursor_obj["style"] == "unusual":
                 cursor_obj["style"] = None
             else:
@@ -262,15 +280,6 @@ def handle_keypress(e):
     
 
     
-
-
-root.bind("<Right>", cursor_next)
-root.bind("<Left>", cursor_prev)
-root.bind("<Down>", hide_to_do)
-root.bind("<Up>", show_to_do)
-root.bind("<KeyPress>", handle_keypress)
-
-
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
 
@@ -301,7 +310,6 @@ def rule_compatability(rule1, rule2):
 
 #make rules for objects
 rules = []
-num_rules = 6
 
 type_options = types*2
 
@@ -371,7 +379,6 @@ while len(rules) < num_rules:
 
 # make rules for room colour
 walls = []
-num_wall_rules = 4
 wall_option_top = [True, True, False, False]
 wall_option_left = [True, True, False, False]
 
@@ -633,17 +640,59 @@ def draw_canvas():
     #Convert Canvas to Tk Label and draw to screen
     #Resample to screen size using NN
     canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-
     canvas_label.config(image = canvas_tk)
 
     
-draw_canvas()
 
+def draw_setup():
+    global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules
+     
+    #Load and Place Background
+    try:
+        back_img = Image.open('assets/back.png') # If house.png does not open -
+    except FileNotFoundError:
+        print(f'Failed opening: assets/back.png, falling-back to: assets/back_placeholder.png')
+        back_img = Image.open('assets/back_placeholder.png') # - Use placeholder
+
+    #Place background on canvas
+    back_img = back_img.resize((596, 336), Image.NEAREST)
+    Image.Image.paste(canvas, back_img, (0, 0))
+        
+    #Load and Place Setup
+    setup_img = Image.open('assets/setup_menu.png')
+    #Place setup menu on canvas
+    Image.Image.paste(canvas, setup_img, (0, 0), setup_img.convert("RGBA"))
+
+    #Load and Place num rules
+    num_rules_img = Image.open(f'''assets/numbers/number_{num_rules}.png''')
+    #Place num rules on canvas
+    Image.Image.paste(canvas, num_rules_img, (286, 149), num_rules_img.convert("RGBA"))
+
+    #Load and Place num wall rules
+    num_wall_rules_img = Image.open(f'''assets/numbers/number_{num_wall_rules}.png''')
+    #Place num rule walls on canvas
+    Image.Image.paste(canvas, num_wall_rules_img, (297, 164), num_wall_rules_img.convert("RGBA"))
+
+    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+    canvas_label.config(image = canvas_tk)
 
 
 
 #Mainloop
 x = 0
+while setup_loop:
+    root.update_idletasks()
+    root.update()
+    draw_setup()
+
+
+#root.bind("<Right>",cursor_next)
+#root.bind("<Left>", cursor_prev)
+#root.bind("<Down>", hide_to_do
+#root.bind("<Up>", show_to_do)
+root.bind("<KeyPress>", handle_keypress)
+
+
 while mainloop:
     root.update_idletasks()
     root.update()

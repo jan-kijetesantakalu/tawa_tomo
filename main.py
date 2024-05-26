@@ -440,6 +440,39 @@ root.unbind("<KeyPress>")
 
 rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
 
+def create_to_do():
+    #draw to do list
+    td = open_asset("to_do", True)
+
+    draw_asset("to_do_stuff", (11,20), td)
+
+    n_smileys = len(glob.glob("assets/smileys/*.png"))
+    squiggle_y = 38
+
+    drawn_wall_label = False
+    
+    squiggles = [x for x in range(1,len(glob.glob("assets/squiggles/*.png"))+1)]
+
+    for rule in rules: 
+        if not rule["obj"] and not drawn_wall_label:
+            drawn_wall_label = True
+            draw_asset("to_do_walls", (11, squiggle_y), td)
+            squiggle_y += 18
+        
+        if len(squiggles) == 0:
+            squiggles = [x for x in range(1,len(glob.glob("assets/squiggles/*.png"))+1)]
+        
+        squig = f"squiggles/squiggle_{squiggles.pop(randint(0, len(squiggles)-1))}"
+
+        draw_asset(squig, (11, squiggle_y), td)
+
+        draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), td)
+
+        squiggle_y += 18
+    
+    return td
+
+to_do = create_to_do()
 #MAINLOOP SCREEN
 
 def draw_object(room, rooms, obj_type):
@@ -478,36 +511,20 @@ def draw_rooms(rooms):
             draw_object(room, rooms, obj)
 
         
-def create_to_do():
-    #draw to do list
-    td = open_asset("to_do", True)
 
-    draw_asset("to_do_stuff", (11,20), td)
 
+def update_to_do_status(td):
     n_smileys = len(glob.glob("assets/smileys/*.png"))
     squiggle_y = 38
-
     drawn_wall_label = False
-    
-    squiggles = [x for x in range(1,len(glob.glob("assets/squiggles/*.png"))+1)]
-
     for rule in rules: 
         if not rule["obj"] and not drawn_wall_label:
             drawn_wall_label = True
-            draw_asset("to_do_walls", (11, squiggle_y), td)
             squiggle_y += 18
-        
-        if len(squiggles) == 0:
-            squiggles = [x for x in range(1,len(glob.glob("assets/squiggles/*.png"))+1)]
-        
-        squig = f"squiggles/squiggle_{squiggles.pop(randint(0, len(squiggles)-1))}"
-
-        draw_asset(squig, (11, squiggle_y), td)
-
+                
         draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), td)
 
         squiggle_y += 18
-    
     return td
 
 def create_cursor():
@@ -553,7 +570,7 @@ def draw_canvas():
         
     if update_to_do:
         update_to_do = False
-        to_do = create_to_do()
+        to_do = update_to_do_status(to_do)
 
     draw_img(to_do, (576-int(92*to_do_pos),0))
 

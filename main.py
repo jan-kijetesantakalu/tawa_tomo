@@ -66,6 +66,7 @@ canvas_label = tk.Label()
 canvas_label.place(x=0, y=0)
 
 def finalise_canvas():
+    global canvas, canvas_label, canvas_tk
     canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
     canvas_label.config(image = canvas_tk)
 

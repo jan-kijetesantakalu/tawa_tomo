@@ -703,6 +703,8 @@ def draw_canvas():
         squiggle_y = 38
     
         drawn_wall_label = False
+        
+        squiggles = []
 
         for rule in rules: 
             if not rule["obj"] and not drawn_wall_label:
@@ -710,8 +712,11 @@ def draw_canvas():
                 walls = Image.open("assets/to_do_walls.png")
                 Image.Image.paste(to_do, walls, (11,squiggle_y), walls.convert("RGBA"))
                 squiggle_y += 18
-
-            squiggle = Image.open(choice(glob.glob("assets/squiggles/*.png")))
+            
+            if len(squiggles) == 0:
+                squiggles = glob.glob("assets/squiggles/*.png")
+            
+            squiggle = Image.open(squiggles.pop(randint(0,len(squiggles)-1)))
             Image.Image.paste(to_do, squiggle, (11,squiggle_y), squiggle.convert("RGBA"))
 
             rule_score = evaluate_rule(rooms, rule)

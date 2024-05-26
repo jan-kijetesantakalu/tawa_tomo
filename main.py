@@ -1,13 +1,14 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, cursor_order, redraw, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days, num_rules, num_wall_rules #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, cursor_order, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_idi, sleep_frames, days, num_rules, num_wall_rules #, SCALE
 
 import tkinter as tk
 from random import *
 from PIL import Image, ImageTk, ImageDraw, ImageFont
-import glob, sys, os
+import glob, sys, os, time
 
-redraw = True #Will next frame be drawn?
 mainloop = True
 setup_loop = True
+
+img_cache = {}
 
 def exit_loop():
     global mainloop, setup_loop
@@ -36,12 +37,27 @@ canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
 canvas_label = tk.Label()
 canvas_label.place(x=0, y=0)
 
-def open_asset(asset = "placeholder"):
+def finalise_canvas():
+    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
+    canvas_label.config(image = canvas_tk)
+
+def open_asset(asset = "placeholder", bypass_cache = False):
+    global img_cache
     try:
-        return Image.open(f"assets/{asset}.png")
-    except:
-        print(f'Failed opening: assets/{asset}.png, falling-back to: assets/placeholder.png')
-        return Image.open(f"assets/placeholder.png")
+        if asset not in img_cache or bypass_cache:
+            img = Image.open(f"assets/{asset}.png")
+            img_cache[asset] = img
+            return img
+        else:
+            return img_cache[asset]
+    except OSError:
+        print(f'\nFailed opening: assets/{asset}.png, falling-back to: assets/placeholder.png')
+        if asset not in img_cache:
+            img = Image.open(f"assets/placeholder.png")
+            img_cache[asset] = img
+            return img
+        else:
+            return img_cache[asset]
 
 def draw_img(img = open_asset("placeholder"), pos = (0, 0), dest = canvas):
     Image.Image.paste(dest, img, pos, img.convert("RGBA"))
@@ -72,9 +88,8 @@ cursor_pos = 0 # Taken mod 16, the index of the cursor in CURSOR_ORDER
 
 to_do_pos = 1 #float, 0-1 (incl) interpolated the position of the to_do image
 
-update_to_do = True
+update_to_do = False
 to_do = open_asset("to_do")
-
 
 sleep_pos = 0 #float, 0-1 (incl) interpolated the position of the sleep image
 sleep_frames = 0 #The number of frames to sleep for
@@ -328,6 +343,8 @@ def evaluate_rule(rooms, rule):
 
 
 #SETUP SCREEN
+
+
 def create_sleep_overlay():
     sleep_rec = Image.new("RGBA", canvas.size)
     ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
@@ -350,10 +367,7 @@ def draw_setup():
     if sleep_frames > 0:
         draw_img(create_sleep_overlay())
 
-        sleep_frames -= 1
-
-    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-    canvas_label.config(image = canvas_tk)
+    finalise_canvas()
 
 def increment_num_rules():
     global num_rules
@@ -411,12 +425,17 @@ root.bind("<KeyPress>", handle_keypress_setup)
 update_count = 0
 setup_sleep = True
 while setup_loop:
+    frame_start = time.time()
     root.update_idletasks()
     root.update()
     draw_setup()
     if sleep_frames == 52:
         setup_loop = False
+    if sleep_frames > 0:
+        sleep_frames -= 1
+        
     update_count += 1
+    print("FPS", 1/(time.time() - frame_start), end = "\r")
 root.unbind("<KeyPress>")
 
 rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
@@ -460,38 +479,39 @@ def create_rooms(rooms):
         
 def create_to_do():
     #draw to do list
-    to_do = open_asset("to_do")
+    td = open_asset("to_do", True)
 
-    draw_asset("to_do_stuff", (11,20), to_do)
+    draw_asset("to_do_stuff", (11,20), td)
 
     n_smileys = len(glob.glob("assets/smileys/*.png"))
     squiggle_y = 38
 
     drawn_wall_label = False
     
-    squiggles = [x for x in range(1,n_smileys+1)]
+    squiggles = [x for x in range(1,len(glob.glob("assets/squiggles/*.png"))+1)]
 
     for rule in rules: 
         if not rule["obj"] and not drawn_wall_label:
             drawn_wall_label = True
-            draw_asset("to_do_walls", (11, squiggle_y), to_do)
+            draw_asset("to_do_walls", (11, squiggle_y), td)
             squiggle_y += 18
         
         if len(squiggles) == 0:
-            squiggles = [x for x in range(1,n_smileys+1)]
+            squiggles = [x for x in range(1,len(glob.glob("assets/squiggles/*.png"))+1)]
         
+        squig = f"squiggles/squiggle_{squiggles.pop(randint(0, len(squiggles)-1))}"
 
-        draw_asset(f"squiggles/squiggle_{squiggles.pop(randint(0, len(squiggles)-1))}", (11, squiggle_y), to_do)
+        draw_asset(squig, (11, squiggle_y), td)
 
-        draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), to_do)
+        draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), td)
 
         squiggle_y += 18
     
-    return to_do
+    return td
 
 
 def draw_canvas():
-    global canvas, canvas_label, canvas_tk, CURSOR_ORDER, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames, days, redraw
+    global canvas, canvas_label, canvas_tk, CURSOR_ORDER, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames, days
     
     #Load and Place Background
     draw_asset("back")
@@ -536,45 +556,30 @@ def draw_canvas():
 
     if sleep_frames > 0:
         # sleeping
-        redraw = True
         draw_img(create_sleep_overlay())
-        sleep_frames -= 1
 
-    if sleep_frames == 10:
-        show_to_do()
-
-    if sleep_frames == 50:
-        hide_sleep()
-        days += 1
-        update_to_do = True
     
-    #Convert Canvas to Tk Label and draw to screen
-    #Resample to screen size using NN
-    canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
-    canvas_label.config(image = canvas_tk)
+    finalise_canvas()
 
 
 def cursor_next(e):
-    global cursor_pos, redraw
+    global cursor_pos
     if e != None and sleep_frames != 0:
         return
     cursor_pos += 1
     cursor_pos %= 16
-    redraw = True
 
 def cursor_prev(e):
-    global cursor_pos, redraw
+    global cursor_pos
     if e != None and sleep_frames != 0:
         return
     cursor_pos -= 1
     cursor_pos %= 16
-    redraw = True
 
 def hide_to_do(e=None):
-    global redraw, to_do_pos, to_do_after_id    
+    global to_do_pos, to_do_after_id    
     if e != None and sleep_frames != 0:
         return
-    redraw = True   
     
     if to_do_pos > 0.01:    
         to_do_pos -= 0.01+(to_do_pos/12)+(to_do_pos/4)**1.5
@@ -587,10 +592,9 @@ def hide_to_do(e=None):
     to_do_pos = max(to_do_pos, 0)
 
 def show_to_do(e=None):
-    global redraw, to_do_pos, to_do_after_id    
+    global to_do_pos, to_do_after_id    
     if e != None and sleep_frames != 0:
         return
-    redraw = True
     
     if to_do_pos < 0.99:
         to_do_pos += 0.01+((1-to_do_pos)/12)+((1-to_do_pos)/4)**1.5
@@ -604,10 +608,9 @@ def show_to_do(e=None):
    
 
 def hide_sleep(e=None):
-    global redraw, sleep_pos, sleep_after_id
+    global sleep_pos, sleep_after_id
     if e != None and sleep_frames != 0:
         return
-    redraw = True
 
     if sleep_pos > 0:
         sleep_pos -= 0.03+(sleep_pos/16)+(sleep_pos/4)**2
@@ -621,11 +624,10 @@ def hide_sleep(e=None):
 
 
 def show_sleep(e=None):
-    global redraw, sleep_pos, sleep_after_id, sleep_frames
+    global sleep_pos, sleep_after_id, sleep_frames
 
     if e != None and sleep_frames != 0:
         return 
-    redraw = True
     hide_to_do()
 
     if sleep_pos < 1:
@@ -640,13 +642,12 @@ def show_sleep(e=None):
 
 
 def commit_sleep():
-    global redraw, sleep_frames
-    redraw = True
+    global sleep_frames
     sleep_frames = 101
     
 
 def handle_keypress(e):
-    global cursor_pos, redraw
+    global cursor_pos
      
     if sleep_frames != 0:
         return
@@ -719,19 +720,30 @@ def handle_keypress(e):
                 cursor_obj["style"] = "unusual"
 
 
-    redraw = True
-
 #MAINLOOP
 root.bind("<KeyPress>", handle_keypress)
 
+
 while mainloop:
+    frame_start = time.time()
     root.update_idletasks()
     root.update()
     
-    if redraw:
-        redraw = False
-        draw_canvas()
+
+    draw_canvas()
+
+    if sleep_frames > 0:
+        sleep_frames -= 1
+
+    if sleep_frames == 10:
+        show_to_do()
+
+    if sleep_frames == 50:
+        hide_sleep()
+        days += 1
+        update_to_do = True
 
     update_count += 1
+    print("FPS", 1/(time.time() - frame_start), end = "\r")
 
 root.destroy()

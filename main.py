@@ -5,6 +5,10 @@ from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import glob, sys, os, time
 
+#Disable printing if not in debug mode
+if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
+    sys.stdout = open(os.devnull, 'w')
+
 mainloop = True
 setup_loop = True
 setup_scroll = 0
@@ -121,9 +125,6 @@ num_rules = 4       #Default values, can be overwritten later
 num_wall_rules = 2  #As above
 
 
-#Disable printing if not in debug mode
-if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
-    sys.stdout = open(os.devnull, 'w')
 
 
 #Empty Room Initilisation

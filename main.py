@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_frames, days, num_rules, num_wall_rules, setup_scroll #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll #, SCALE
 
 import tkinter as tk
 from random import randint, choice
@@ -112,7 +112,7 @@ update_to_do = False
 to_do = open_asset("to_do")
 
 sleep_pos = 0 #float, 0-1 (incl) interpolated the position of the sleep image
-sleep_frames = 0 #The number of frames to sleep for
+sleep_time = 0 #The number of frames to sleep for
 
 
 days = 0 #The number of days passed (in game)
@@ -367,14 +367,14 @@ def evaluate_rule(rooms, rule):
 
 def create_sleep_overlay():
     sleep_rec = Image.new("RGBA", canvas.size)
-    ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_frames)-4)**4+255)))
+    ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_time*(100/5))-4)**4+255)))
     font = ImageFont.truetype("assets/pixel_font.ttf", 48)
-    ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_frames)-4)**4+255)))
+    ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_time*(100/5))-4)**4+255)))
     return sleep_rec
 
 
 def draw_setup():
-    global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules, sleep_frames, setup_scroll
+    global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules, sleep_time, setup_scroll
 
     draw_asset("setup_menu", (0, -setup_scroll))
 
@@ -382,7 +382,7 @@ def draw_setup():
 
     draw_asset(f"numbers/number_{num_wall_rules}", (297, 164-setup_scroll))
     
-    if sleep_frames > 0:
+    if sleep_time > 0:
         draw_img(create_sleep_overlay())
 
     finalise_canvas()
@@ -424,9 +424,9 @@ def dincrement_setup_scroll():
     setup_scroll = max(0, setup_scroll - 16)
 
 def handle_keypress_setup(e):
-    global setup_loop, sleep_frames, setup_scroll
+    global setup_loop, sleep_time, setup_scroll
 
-    if sleep_frames > 0:
+    if sleep_time > 0:
         return
 
     elif e.keysym.lower() == "j":
@@ -449,7 +449,7 @@ def handle_keypress_setup(e):
     
     elif e.keysym.lower() == "down":
         if setup_scroll >= 336:
-            sleep_frames = 101   
+            sleep_time = 5
 
 
 #SETUP
@@ -463,13 +463,15 @@ while setup_loop:
     root.update_idletasks()
     root.update()
     draw_setup()
-    if sleep_frames == 52:
+    if sleep_time <= 2.5 and sleep_time > 0:
         setup_loop = False
-    if sleep_frames > 0:
-        sleep_frames -= 1
+
+    if sleep_time > 0:
+        sleep_time -= (time.time() - frame_start)
         
     update_count += 1
     print("FPS", 1/(time.time() - frame_start), end = "\r")
+
 root.unbind("<KeyPress>")
 
 rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
@@ -592,7 +594,7 @@ def create_cursor():
 
 
 def draw_canvas():
-    global canvas, canvas_label, canvas_tk, cursor_pos, to_do, to_do_pos, update_to_do, sleep_frames, days
+    global canvas, canvas_label, canvas_tk, cursor_pos, to_do, to_do_pos, update_to_do, sleep_time, days
     
     #Load and Place Background
     draw_asset("back")
@@ -610,7 +612,7 @@ def draw_canvas():
 
     draw_asset(f"sleep/sleep_{rooms['bedroom']['colour']}", (0, -24+int(360*(1-sleep_pos))))
 
-    if sleep_frames > 0:
+    if sleep_time > 0:
         # sleeping
         draw_img(create_sleep_overlay())
 
@@ -620,21 +622,21 @@ def draw_canvas():
 
 def cursor_next(e):
     global cursor_pos
-    if e != None and sleep_frames != 0:
+    if e != None and sleep_time > 0:
         return
     cursor_pos += 1
     cursor_pos %= 16
 
 def cursor_prev(e):
     global cursor_pos
-    if e != None and sleep_frames != 0:
+    if e != None and sleep_time > 0:
         return
     cursor_pos -= 1
     cursor_pos %= 16
 
 def hide_to_do(e=None):
     global to_do_pos, to_do_after_id    
-    if e != None and sleep_frames != 0:
+    if e != None and sleep_time > 0:
         return
     
     if to_do_pos > 0.01:    
@@ -649,7 +651,7 @@ def hide_to_do(e=None):
 
 def show_to_do(e=None):
     global to_do_pos, to_do_after_id    
-    if e != None and sleep_frames != 0:
+    if e != None and sleep_time > 0:
         return
     
     if to_do_pos < 0.99:
@@ -665,7 +667,7 @@ def show_to_do(e=None):
 
 def hide_sleep(e=None):
     global sleep_pos, sleep_after_id
-    if e != None and sleep_frames != 0:
+    if e != None and sleep_time > 0:
         return
 
     if sleep_pos > 0:
@@ -680,9 +682,9 @@ def hide_sleep(e=None):
 
 
 def show_sleep(e=None):
-    global sleep_pos, sleep_after_id, sleep_frames
+    global sleep_pos, sleep_after_id, sleep_time
 
-    if e != None and sleep_frames != 0:
+    if e != None and sleep_time > 0:
         return 
     
     hide_to_do()
@@ -699,14 +701,14 @@ def show_sleep(e=None):
 
 
 def commit_sleep():
-    global sleep_frames
-    sleep_frames = 101
+    global sleep_time
+    sleep_time = 5
     
 
 def handle_keypress(e):
-    global cursor_pos, sleep_pos, sleep_frames
+    global cursor_pos, sleep_pos, sleep_time
      
-    if sleep_frames != 0:
+    if sleep_time > 0:
         return
 
     cursor_loc = CURSOR_ORDER[cursor_pos]
@@ -783,6 +785,8 @@ def handle_keypress(e):
 root.bind("<KeyPress>", handle_keypress)
 
 
+daycount = False
+
 while mainloop:
     frame_start = time.time()
     root.update_idletasks()
@@ -791,15 +795,19 @@ while mainloop:
 
     draw_canvas()
 
-    if sleep_frames > 0:
-        sleep_frames -= 1
+    if sleep_time > 0:
+        sleep_time -= (time.time() - frame_start)
+    else:
+        sleep_time = 0
+        daycount = False
 
-    if sleep_frames == 10:
+    if sleep_time <= 0.3 and sleep_time > 0:
         show_to_do()
 
-    if sleep_frames == 50:
+    if sleep_time <= 2.5 and sleep_time > 0 and not daycount:
         hide_sleep()
         days += 1
+        daycount = True
         update_to_do = True
 
     update_count += 1

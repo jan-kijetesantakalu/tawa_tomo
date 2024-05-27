@@ -466,7 +466,7 @@ def create_to_do():
 
         draw_asset(squig, (11, squiggle_y), td)
 
-        draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), td)
+      #  draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), td)
 
         squiggle_y += 18
     

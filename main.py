@@ -670,7 +670,7 @@ def commit_sleep():
     
 
 def handle_keypress(e):
-    global cursor_pos
+    global cursor_pos, sleep_pos, sleep_frames
      
     if sleep_frames != 0:
         return
@@ -695,8 +695,10 @@ def handle_keypress(e):
     elif e.keysym.lower() == "down":
         hide_sleep(e)
 
+    if sleep_pos > 0.75:
+        return
 
-    elif e.keysym.lower() == "j":
+    if e.keysym.lower() == "j":
         cursor_prev(e)
 
     elif e.keysym.lower() == "l":

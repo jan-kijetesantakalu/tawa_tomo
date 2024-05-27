@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_frames, days, num_rules, num_wall_rules #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_frames, days, num_rules, num_wall_rules, setup_scroll #, SCALE
 
 import tkinter as tk
 from random import randint, choice
@@ -7,6 +7,7 @@ import glob, sys, os, time
 
 mainloop = True
 setup_loop = True
+setup_scroll = 0
 
 img_cache = {}
 
@@ -373,15 +374,13 @@ def create_sleep_overlay():
 
 
 def draw_setup():
-    global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules, sleep_frames
-     
-    draw_asset("back")
-        
-    draw_asset("setup_menu")
+    global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules, sleep_frames, setup_scroll
 
-    draw_asset(f"numbers/number_{num_rules}", (286, 149))
+    draw_asset("setup_menu", (0, -setup_scroll))
 
-    draw_asset(f"numbers/number_{num_wall_rules}", (297, 164))
+    draw_asset(f"numbers/number_{num_rules}", (286, 149-setup_scroll))
+
+    draw_asset(f"numbers/number_{num_wall_rules}", (297, 164-setup_scroll))
     
     if sleep_frames > 0:
         draw_img(create_sleep_overlay())
@@ -416,8 +415,16 @@ def dincrement_num_wall_rules():
     else:
         num_wall_rules = 4
 
+def increment_setup_scroll():
+    global setup_scroll
+    setup_scroll = min(672, setup_scroll + 16)
+
+def dincrement_setup_scroll():
+    global setup_scroll
+    setup_scroll = max(0, setup_scroll - 16)
+
 def handle_keypress_setup(e):
-    global setup_loop, sleep_frames
+    global setup_loop, sleep_frames, setup_scroll
 
     if sleep_frames > 0:
         return
@@ -428,14 +435,21 @@ def handle_keypress_setup(e):
     elif e.keysym.lower() == "l":
         increment_num_rules()
 
+    elif e.keysym.lower() == "i":
+        dincrement_setup_scroll()
+    
+    elif e.keysym.lower() == "k":
+        increment_setup_scroll()
+
     elif e.keysym.lower() == "left":
         dincrement_num_wall_rules()
 
     elif e.keysym.lower() == "right":
         increment_num_wall_rules()
     
-    elif e.keysym.lower() == "up":
-        sleep_frames = 101   
+    elif e.keysym.lower() == "down":
+        if setup_scroll >= 336:
+            sleep_frames = 101   
 
 
 #SETUP

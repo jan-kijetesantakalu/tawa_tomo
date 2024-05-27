@@ -635,6 +635,13 @@ def cursor_prev(e):
     cursor_pos -= 1
     cursor_pos %= 16
 
+def cursor_room_next(e):
+    global cursor_pos
+    if e != None and sleep_time > 0:
+        return
+    cursor_pos += 8
+    cursor_pos %= 16
+
 def hide_to_do(e=None):
     global to_do_pos, to_do_after_id    
     if e != None and sleep_time > 0:
@@ -741,6 +748,8 @@ def handle_keypress(e):
     elif e.keysym.lower() == "l":
         cursor_next(e)
 
+    elif e.keysym.lower() in ["i", "k"]:
+        cursor_room_next(e)
 
     elif e.keysym.lower() == "a":
         cursor_obj["colour"] = "red"

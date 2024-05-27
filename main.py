@@ -71,6 +71,25 @@ def finalise_canvas():
     canvas_label.config(image = canvas_tk)
 
 
+#SPLASH SCREEN
+
+update_count = 0
+
+start_time = time.time()
+
+while time.time() - start_time < 3:
+    frame_start = time.time()
+    
+    root.update_idletasks()
+    root.update()
+    
+    draw_asset("splash")
+    finalise_canvas()
+    
+    update_count += 1
+    print("FPS", 1/(time.time() - frame_start), end = "\r")
+
+
 #Initilse Constants
 
 TYPES   = ["lamp", "hanging", "tat"]
@@ -421,8 +440,9 @@ def handle_keypress_setup(e):
 
 #SETUP
 
+
+
 root.bind("<KeyPress>", handle_keypress_setup)
-update_count = 0
 setup_sleep = True
 while setup_loop:
     frame_start = time.time()

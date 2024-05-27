@@ -415,7 +415,7 @@ def handle_keypress_setup(e):
     elif e.keysym.lower() == "right":
         increment_num_wall_rules()
     
-    elif e.keysym.lower() == "down":
+    elif e.keysym.lower() == "up":
         sleep_frames = 101   
 
 
@@ -574,7 +574,7 @@ def draw_canvas():
 
     draw_img(to_do, (576-int(92*to_do_pos),0))
 
-    draw_asset(f"sleep/sleep_{rooms['bedroom']['colour']}", (0, 0-int(336*(1-sleep_pos))))
+    draw_asset(f"sleep/sleep_{rooms['bedroom']['colour']}", (0, 0+int(336*(1-sleep_pos))))
 
     if sleep_frames > 0:
         # sleeping
@@ -686,13 +686,13 @@ def handle_keypress(e):
     elif e.keysym.lower() == "left":
         show_to_do(e)
 
-    elif e.keysym.lower() == "down":
+    elif e.keysym.lower() == "up":
         if sleep_pos > 0.75:
             commit_sleep()
         else:
             show_sleep(e)
 
-    elif e.keysym.lower() == "up":
+    elif e.keysym.lower() == "down":
         hide_sleep(e)
 
 

@@ -574,7 +574,7 @@ def draw_canvas():
 
     draw_img(to_do, (576-int(92*to_do_pos),0))
 
-    draw_asset("sleep", (0, 0-int(336*(1-sleep_pos))))
+    draw_asset(f"sleep/sleep_{rooms['bedroom']['colour']}", (0, 0-int(336*(1-sleep_pos))))
 
     if sleep_frames > 0:
         # sleeping

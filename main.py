@@ -11,7 +11,7 @@ if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
 
 mainloop = True
 setup_loop = True
-setup_scroll = 0
+setup_scroll = -336
 
 img_cache = {}
 
@@ -485,8 +485,17 @@ while title_loop:
     update_count += 1
     print("FPS", 1/(time.time() - frame_start), end = "\r")
 
-
 #SETUP
+
+while setup_loop and setup_scroll < 0:
+    frame_start = time.time()
+    root.update_idletasks()
+    root.update()
+    draw_setup()
+    update_count += 1
+    if setup_scroll < 0:
+        setup_scroll += 28
+    print("FPS", 1/(time.time() - frame_start), end = "\r")
 
 root.unbind("<KeyPress>")
 root.bind("<KeyPress>", handle_keypress_setup)

@@ -54,7 +54,7 @@ def draw_asset(asset = "placeholder", pos = (0,0), dest = canvas):
 root = tk.Tk()
 root.attributes('-fullscreen', True)
 root.protocol("WM_DELETE_WINDOW", exit_loop)
-root.title("decorumish - jan Kili Lili anu jan Kijetesantakalu")
+root.title("tawa tomo - jan Kili Lili anu jan Kijetesantakalu")
 root.wm_iconphoto(True, ImageTk.PhotoImage(open_asset("icon"))) 
 
 WIDTH = root.winfo_screenwidth()

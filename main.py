@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop #, SCALE
 
 import tkinter as tk
 from random import randint, choice
@@ -16,9 +16,10 @@ setup_scroll = 0
 img_cache = {}
 
 def exit_loop():
-    global mainloop, setup_loop
+    global mainloop, setup_loop, title_loop
     mainloop = False
     setup_loop = False
+    title_loop = False
 
 #Create Canvas Image
 canvas = Image.new(mode= "RGBA", size=(596,336))
@@ -93,7 +94,7 @@ while time.time() - start_time < 3:
     
     update_count += 1
     print("FPS", 1/(time.time() - frame_start), end = "\r")
-
+    
 
 #Initilse Constants
 
@@ -453,10 +454,41 @@ def handle_keypress_setup(e):
             sleep_time = 5
 
 
+def handle_keypress_title(e=None):
+    global title_loop
+
+    if e.keysym.lower() == "a":
+        title_loop = False
+
+    elif e.keysym.lower() == "s":
+        pass
+
+    elif e.keysym.lower() == "d":
+        pass
+
+    elif e.keysym.lower() == "f":
+        exit_loop()
+
+root.bind("<KeyPress>", handle_keypress_title)
+
+
+# title
+
+title_loop = True
+while title_loop:
+    frame_start = time.time()
+    root.update_idletasks()
+    root.update()
+    draw_asset("back")
+    draw_asset("title")
+    finalise_canvas()
+    update_count += 1
+    print("FPS", 1/(time.time() - frame_start), end = "\r")
+
+
 #SETUP
 
-
-
+root.unbind("<KeyPress>")
 root.bind("<KeyPress>", handle_keypress_setup)
 setup_sleep = True
 while setup_loop:
@@ -476,6 +508,7 @@ while setup_loop:
 root.unbind("<KeyPress>")
 
 rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
+
 
 def create_to_do():
     #draw to do list

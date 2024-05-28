@@ -677,6 +677,8 @@ def hide_sleep(e=None):
     global sleep_pos, sleep_after_id
     if e != None and sleep_time > 0:
         return
+    
+    show_to_do()
 
     if sleep_pos > 0:
         sleep_pos -= 0.03+(sleep_pos/16)+(sleep_pos/4)**2

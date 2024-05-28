@@ -5,6 +5,7 @@ from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import glob, sys, os, time
 
+
 #Disable printing if not in debug mode
 if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
     sys.stdout = open(os.devnull, 'w')
@@ -697,7 +698,7 @@ def hide_to_do(e=None):
             # if event not defined
             pass
         to_do_after_id = root.after(1, hide_to_do)
-    to_do_pos = max(to_do_pos, 0)
+
 
 def show_to_do(e=None):
     global to_do_pos, to_do_after_id    
@@ -712,7 +713,6 @@ def show_to_do(e=None):
             # if event not defined
             pass
         to_do_after_id = root.after(1, show_to_do)
-    to_do_pos = min(to_do_pos, 1)
    
 
 def hide_sleep(e=None):
@@ -752,13 +752,43 @@ def show_sleep(e=None):
     sleep_pos = min(sleep_pos, 1)
 
 
+def hide_quit(e=None):
+    global to_do_pos, to_do_after_id    
+    if e != None and sleep_time > 0:
+        return
+    
+    if to_do_pos > 1:    
+        to_do_pos -= 0.01+((to_do_pos-1)/12)+((to_do_pos-1)/4)**1.5
+        try:
+            root.after_cancel(to_do_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        to_do_after_id = root.after(1, hide_quit)
+
+
+def show_quit(e=None):
+    global to_do_pos, to_do_after_id    
+    if e != None and sleep_time > 0:
+        return
+    
+    if to_do_pos < 2.75:
+        to_do_pos += 0.01+((2.75-to_do_pos)/12)+((2.75-to_do_pos)/4)**1.5
+        try:
+            root.after_cancel(to_do_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        to_do_after_id = root.after(1, show_quit)
+
+
 def commit_sleep():
     global sleep_time
     sleep_time = 5
     
 
 def handle_keypress(e):
-    global cursor_pos, sleep_pos, sleep_time
+    global cursor_pos, sleep_pos, sleep_time, to_do_pos
      
     if sleep_time > 0:
         return
@@ -769,10 +799,16 @@ def handle_keypress(e):
     
 
     if e.keysym.lower() == "right":
-        hide_to_do(e)
+        if to_do_pos > 0.75 and to_do_pos < 1.25:
+            hide_to_do(e)
+        elif to_do_pos > 1.25:
+            hide_quit(e)
 
     elif e.keysym.lower() == "left":
-        show_to_do(e)
+        if to_do_pos < 0.75:
+            show_to_do(e)
+        elif to_do_pos > 0.75 and to_do_pos < 1.25:
+            show_quit(e)
 
     elif e.keysym.lower() == "up":
         if sleep_pos > 0.75:

@@ -782,6 +782,24 @@ def show_quit(e=None):
         to_do_after_id = root.after(1, show_quit)
 
 
+def quit_to_title(e=None):
+    global to_do_pos, to_do_after_id    
+    if e != None and sleep_time > 0:
+        return
+    
+    if to_do_pos < 15.4:
+        to_do_pos += 0.01+((to_do_pos)/32)+((to_do_pos)/8)**2
+        try:
+            root.after_cancel(to_do_after_id)
+        except NameError:
+            # if event not defined
+            pass 
+        to_do_after_id = root.after(1, quit_to_title)
+    
+    else:
+        root.after(200, exit_loop)
+
+
 def commit_sleep():
     global sleep_time
     sleep_time = 5
@@ -809,6 +827,8 @@ def handle_keypress(e):
             show_to_do(e)
         elif to_do_pos > 0.75 and to_do_pos < 1.25:
             show_quit(e)
+        elif to_do_pos > 2:
+            quit_to_title(e)
 
     elif e.keysym.lower() == "up":
         if sleep_pos > 0.75:

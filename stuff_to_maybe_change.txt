@@ -1,5 +1,4 @@
 Background
-- attic borders + right wall -2 pxl
 - foreground
 - background
 - sky

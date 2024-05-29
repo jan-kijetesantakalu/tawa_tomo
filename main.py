@@ -788,7 +788,7 @@ def quit_to_title(e=None):
         return
     
     if to_do_pos < 15.4:
-        to_do_pos += 0.01+((to_do_pos)/32)+((to_do_pos)/8)**2
+        to_do_pos += 0.05+((to_do_pos)/4)+((to_do_pos)/8)**1.5
         try:
             root.after_cancel(to_do_after_id)
         except NameError:

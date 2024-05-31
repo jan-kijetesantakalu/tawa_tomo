@@ -1,11 +1,58 @@
 global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop #, SCALE
 
+REPO = "jan-kijetesantakalu/decorumish"
+
 import tkinter as tk
 from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
-import glob, sys, os, time
+import glob, sys, os, time, requests
+import socket
+
+#https://stackoverflow.com/questions/3764291/how-can-i-see-if-theres-an-available-and-active-network-connection-in-python
+def internet(host="google.co.uk", port=443, timeout=3):
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error as ex:
+        print("Network not available:",ex)
+        return False
+    
+if not os.path.isdir("assets"):
+    print("./assets not found. Are you running from the correct location?")
+    exit()
+
+if os.path.isfile(".git/HEAD"):
+    VERSION = ""
+    ONLINE_VERSION = ""
+    with open("version") as ver:
+        VERSION = ver.readline().rstrip()
+
+    try:
+        with open(os.path.join(".git", "HEAD")) as head:
+            with open(os.path.join(".git", head.readline().split(":")[1][1:].rstrip())) as h:
+                HASH = h.readline().rstrip()
+                VERSION += ":" + HASH     
+    except OSError:
+        print("Error accessing git HEAD")
 
 
+    if internet() and ":" in VERSION:
+        ONLINE_VERSION = requests.get(f"https://raw.githubusercontent.com/{REPO}/main/version").text
+        ONLINE_HASH = requests.get(f"https://api.github.com/repos/{REPO}/commits").json()[0]["sha"]
+        ONLINE_VERSION += ":" + ONLINE_HASH
+    
+    
+        if VERSION != ONLINE_VERSION:
+            print(f"Local version {VERSION} does not match remote {ONLINE_VERSION}\nUpgrade with:\ngit pull")
+            input("Press enter to continue anyway.")
+        else:
+            print(f"Local version: {VERSION} matches remote.")
+    else:  
+        print("Can't check update status, Local version: {VERSION}.")
+else:
+    print(f"Not running in git repository.\nCan't check update status or version.")
+    
 #Disable printing if not in debug mode
 if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
     sys.stdout = open(os.devnull, 'w')
@@ -30,17 +77,20 @@ def open_asset(asset = "placeholder", bypass_cache = False):
     global img_cache
     try:
         if asset not in img_cache or bypass_cache:
-            img = Image.open(f"assets/{asset}.png")
+            img = Image.open(os.path.join(f"assets", f"{asset}.png"))
             img_cache[asset] = img
             return img
         else:
             return img_cache[asset]
     except OSError:
-        print(f'\nFailed opening: assets/{asset}.png, falling-back to: assets/placeholder.png')
+        print(f'\nFailed opening: {os.path.join(f'assets', f'{asset}.png')}, falling-back to: {os.path.join('assets',"placeholder.png")}')
         if asset not in img_cache:
-            img = Image.open(f"assets/placeholder.png")
-            img_cache[asset] = img
-            return img
+            try:
+                img = Image.open(os.path.join(f"assets","placeholder.png"))
+                img_cache[asset] = img
+                return img
+            except:
+                return Image.new(mode = "RGBA", size = (32,32))
         else:
             return img_cache[asset]
 
@@ -60,17 +110,19 @@ root.wm_iconphoto(True, ImageTk.PhotoImage(open_asset("icon")))
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
 
-if WIDTH/HEIGHT - 16/9 > 0.02:
-    #Screen is wider than expected
-    WIDTH = int(HEIGHT* 16/9)
-elif WIDTH/HEIGHT - 16/9 < 0.2:
-    #Screen is taller than expected
-    HEIGHT = int(WIDTH * 9/16)
-
 canvas_tk = ImageTk.PhotoImage(canvas.resize((WIDTH, HEIGHT), Image.NEAREST))
 canvas_label = tk.Label()
 
-canvas_label.place(x=0, y=0)
+if WIDTH/HEIGHT - 16/9 > 0.02:
+    #Screen is wider than expected
+    canvas_label.place(x=int((WIDTH-(HEIGHT * 16/9))/2), y=0)
+    WIDTH = int(HEIGHT* 16/9)
+elif WIDTH/HEIGHT - 16/9 < 0.2:
+    #Screen is taller than expected
+    canvas_label.place(x=0, y=int((HEIGHT-(WIDTH*9/16))/2))
+    HEIGHT = int(WIDTH * 9/16)
+else:
+    canvas_label.place(x=0, y=0)
 
 def finalise_canvas():
     global canvas, canvas_label, canvas_tk
@@ -94,7 +146,7 @@ while time.time() - start_time < 3:
     finalise_canvas()
     
     update_count += 1
-    print("FPS", 1/(time.time() - frame_start), end = "\r")
+    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
     
 
 #Initilse Constants
@@ -216,20 +268,18 @@ def create_obj_rules(num_rules):
             #magic numbers!
             obj_variety = 192 
             pos_variety = 12
-            target = 12
+            target = 36
         
             rule = {"obj": True, "room_top": None, "room_left": None, "type": None, "colour": None, "style": None} 
         
             rule["room_top"] = choice([True, False, None, None])
             if rule["room_top"] != None:
-                obj_variety /= 2
                 pos_variety /=2
                 if obj_variety * pos_variety <= target:
                     raise(VarietyException)
 
             rule["room_left"] = choice([True, False, None, None])
             if rule["room_left"] != None:
-                obj_variety /= 2
                 pos_variety /= 2
                 if obj_variety * pos_variety <= target: 
                     raise(VarietyException) 
@@ -256,8 +306,11 @@ def create_obj_rules(num_rules):
                 obj_variety /= 4
                 if obj_variety * pos_variety <= target:
                     raise(VarietyException)
+            
+            if rule["type"] != None:
+                type_options.append(rule["type"])
 
-            raise(VarietyException)
+            print(f"Continued rule {rule} with total variety {obj_variety * pos_variety} [{obj_variety}, {pos_variety}]")
 
         except VarietyException:
             comp = True
@@ -266,10 +319,14 @@ def create_obj_rules(num_rules):
                     break
                 else:
                     comp = rule_compatability(rule, rul)
+                    if not comp:
+                        print(f"Passed rule {rule}, incompatible with {rul}")
             if comp:
                 rules.append(rule)   
             elif rule["type"] != None:
                 type_options.append(rule["type"])
+
+            print(f"Added rule {rule} with total variety {obj_variety * pos_variety} [{obj_variety}, {pos_variety}]")
     
     return rules
 
@@ -420,11 +477,11 @@ def dincrement_num_wall_rules():
 
 def increment_setup_scroll():
     global setup_scroll
-    setup_scroll = min(672, setup_scroll + 16)
+    setup_scroll = min(672, setup_scroll + 24)
 
 def dincrement_setup_scroll():
     global setup_scroll
-    setup_scroll = max(0, setup_scroll - 16)
+    setup_scroll = max(0, setup_scroll - 24)
 
 def handle_keypress_setup(e):
     global setup_loop, sleep_time, setup_scroll
@@ -478,13 +535,13 @@ root.bind("<KeyPress>", handle_keypress_title)
 title_loop = True
 while title_loop:
     frame_start = time.time()
-    root.update_idletasks()
+    root.update_idletasks()         
     root.update()
     draw_asset("back")
     draw_asset("title")
     finalise_canvas()
     update_count += 1
-    print("FPS", 1/(time.time() - frame_start), end = "\r")
+    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
 #SETUP
 
@@ -495,8 +552,8 @@ while setup_loop and setup_scroll < 0:
     draw_setup()
     update_count += 1
     if setup_scroll < 0:
-        setup_scroll += 28
-    print("FPS", 1/(time.time() - frame_start), end = "\r")
+        setup_scroll += 40
+    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
 root.unbind("<KeyPress>")
 root.bind("<KeyPress>", handle_keypress_setup)
@@ -513,12 +570,14 @@ while setup_loop:
         sleep_time -= (time.time() - frame_start)
         
     update_count += 1
-    print("FPS", 1/(time.time() - frame_start), end = "\r")
+    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
 root.unbind("<KeyPress>")
 
 rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
 
+for rule in rules:
+    print(rule)
 
 def create_to_do():
     #draw to do list
@@ -558,7 +617,7 @@ to_do = create_to_do()
 def draw_object(room, rooms, obj_type):
     #Open object or placeholder
     if rooms[room][obj_type]["style"] != None:
-        rooms[room][obj_type]["img"] = open_asset(f'{room}/{obj_type}/{rooms[room][obj_type]["style"]}/{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}')
+        rooms[room][obj_type]["img"] = open_asset(os.path.join(f'{room}/{obj_type}', f'{rooms[room][obj_type]["style"]}', f'{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}'))
 
     else:
         rooms[room][obj_type]["img"] = open_asset("blank")
@@ -568,7 +627,7 @@ def draw_object(room, rooms, obj_type):
 def draw_rooms(rooms):
     for room in rooms.keys():
         #Open room (or use placeholder):
-        rooms[room]["img"]= open_asset(f'''{room}/room/{room}_{rooms[room]["colour"]}''')
+        rooms[room]["img"]= open_asset(os.path.join(f'{room}', 'room', f'{room}_{rooms[room]["colour"]}'))
 
         #Place in middle of canvas
         xpos = 298
@@ -594,15 +653,19 @@ def draw_rooms(rooms):
 
 
 def update_to_do_status(td):
-    n_smileys = len(glob.glob("assets/smileys/*.png"))
+    n_smileys = len(glob.glob(os.path.join("assets", "smileys", "*.png")))
     squiggle_y = 38
     drawn_wall_label = False
     for rule in rules: 
         if not rule["obj"] and not drawn_wall_label:
             drawn_wall_label = True
             squiggle_y += 18
-                
-        draw_asset(f"smileys/smiley_{round(evaluate_rule(rooms, rule) * (n_smileys-1))}", (11,squiggle_y), td)
+        
+        room_score = evaluate_rule(rooms, rule)
+
+        print(rule, "=>", room_score, f"[{round(room_score * (n_smileys-1))}]")
+
+        draw_asset(os.path.join("smileys", f"smiley_{round(room_score * (n_smileys-1))}"), (11,squiggle_y), td)
 
         squiggle_y += 18
     return td
@@ -654,7 +717,7 @@ def draw_canvas():
 
     draw_img(to_do, (576-int(92*to_do_pos),0))
 
-    draw_asset(f"sleep/sleep_{rooms['bedroom']['colour']}", (0, -24+int(360*(1-sleep_pos))))
+    draw_asset(os.path.join(f"sleep", f"sleep_{rooms['bedroom']['colour']}"), (0, -24+int(360*(1-sleep_pos))))
 
     if sleep_time > 0:
         # sleeping
@@ -921,6 +984,6 @@ while mainloop:
         update_to_do = True
 
     update_count += 1
-    print("FPS", 1/(time.time() - frame_start), end = "\r")
+    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
 root.destroy()

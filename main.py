@@ -9,7 +9,7 @@ import glob, sys, os, time, requests
 import socket
 
 #https://stackoverflow.com/questions/3764291/how-can-i-see-if-theres-an-available-and-active-network-connection-in-python
-def internet(host="google.co.uk", port=443, timeout=3):
+def internet(host="api.github.com", port=443, timeout=3):
     try:
         socket.setdefaulttimeout(timeout)
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))

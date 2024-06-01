@@ -83,7 +83,7 @@ def open_asset(asset = "placeholder", bypass_cache = False):
         else:
             return img_cache[asset]
     except OSError:
-        print(f'\nFailed opening: {os.path.join(f'assets', f'{asset}.png')}, falling-back to: {os.path.join('assets',"placeholder.png")}')
+        print(f'\nFailed opening: {os.path.join(f"assets", f"{asset}.png")}, falling-back to: {os.path.join("assets","placeholder.png")}')
         if asset not in img_cache:
             try:
                 img = Image.open(os.path.join(f"assets","placeholder.png"))

@@ -3,14 +3,17 @@ Background
 - background
 - sky
 
-Warm and cool colours because cool
+Colourful cursor
 
-kijetesantakalu bit on startup 
+Re-do bed menu
 
-kkTitle screen
+Title screen
 - title (tomo tawa)
 - controls (+ rule types)
 - lore
 
-Quit via double pull to do + update post-it
+kijetesantakalu bit on startup 
 
+To Do right side ripped
+
+Exrta rule types

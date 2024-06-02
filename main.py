@@ -801,7 +801,7 @@ def quit_to_title(e=None):
         return
     
     if to_do_pos < 15.4:
-        to_do_pos += 0.05+((to_do_pos)/4)+((to_do_pos)/8)**1.5
+        to_do_pos += 0.001+((to_do_pos)/8)+((to_do_pos)/12)**1.5
         try:
             root.after_cancel(to_do_after_id)
         except NameError:
@@ -809,10 +809,9 @@ def quit_to_title(e=None):
             pass 
         to_do_after_id = root.after(1, quit_to_title)
     
-    else:
-        mainloop = False
-        setup_loop = True
-        title_loop = True
+    mainloop = False
+    setup_loop = True
+    title_loop = True
 
 
 def commit_sleep():
@@ -905,6 +904,8 @@ def handle_keypress(e):
             else:
                 cursor_obj["style"] = "unusual"
 
+to_do_pos = 15.8
+
 while loop_loop:
     root.unbind("<KeyPress>")
     root.bind("<KeyPress>", handle_keypress_title)
@@ -918,86 +919,12 @@ while loop_loop:
         root.update()
         draw_asset("back")
         draw_asset("title")
+        draw_img(to_do, (576-int(92*to_do_pos),0))
         finalise_canvas()
         update_count += 1
         print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
-    #SETUP
 
-    while setup_loop and loop_loop and setup_scroll < 0:
-        frame_start = time.time()
-        root.update_idletasks()
-        root.update()
-        draw_setup()
-        update_count += 1
-        if setup_scroll < 0:
-            setup_scroll += 40
-        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
-
-    root.unbind("<KeyPress>")
-    root.bind("<KeyPress>", handle_keypress_setup)
-    setup_sleep = True
-    while setup_loop and loop_loop:
-        frame_start = time.time()
-        root.update_idletasks()
-        root.update()
-        draw_setup()
-        if sleep_time <= 2.5 and sleep_time > 0:
-            setup_loop = False
-
-        if sleep_time > 0:
-            sleep_time -= (time.time() - frame_start)
-            
-        update_count += 1
-        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
-
-    root.unbind("<KeyPress>")
-
-    rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
-
-    for rule in rules:
-        print(rule)
-
-
-    to_do = create_to_do()
-
-
-    #MAINLOOP
-    root.bind("<KeyPress>", handle_keypress)
-
-
-    daycount = False
-
-    mainloop = True
-
-    while mainloop and loop_loop:
-        frame_start = time.time()
-        root.update_idletasks()
-        root.update()
-        
-
-        draw_canvas()
-
-        if sleep_time > 0:
-            sleep_time -= (time.time() - frame_start)
-        else:
-            sleep_time = 0
-            daycount = False
-
-        if sleep_time <= 0.3 and sleep_time > 0:
-            show_to_do()
-
-        if sleep_time <= 2.5 and sleep_time > 0 and not daycount:
-            hide_sleep()
-            days += 1
-            daycount = True
-            update_to_do = True
-
-        update_count += 1
-        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
-
-    
-    
     #Initilise Default Values
     cursor_pos = 0 # Taken mod 16, the index of the cursor in CURSOR_ORDER
 
@@ -1081,6 +1008,81 @@ while loop_loop:
     }
         
     setup_scroll = -336
+
+
+    #SETUP
+
+    while setup_loop and loop_loop and setup_scroll < 0:
+        frame_start = time.time()
+        root.update_idletasks()
+        root.update()
+        draw_setup()
+        update_count += 1
+        if setup_scroll < 0:
+            setup_scroll += 40
+        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
+
+    root.unbind("<KeyPress>")
+    root.bind("<KeyPress>", handle_keypress_setup)
+    setup_sleep = True
+    while setup_loop and loop_loop:
+        frame_start = time.time()
+        root.update_idletasks()
+        root.update()
+        draw_setup()
+        if sleep_time <= 2.5 and sleep_time > 0:
+            setup_loop = False
+
+        if sleep_time > 0:
+            sleep_time -= (time.time() - frame_start)
+            
+        update_count += 1
+        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
+
+    root.unbind("<KeyPress>")
+
+    rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
+
+    for rule in rules:
+        print(rule)
+
+
+    to_do = create_to_do()
+
+
+    #MAINLOOP
+    root.bind("<KeyPress>", handle_keypress)
+
+
+    daycount = False
+
+    mainloop = True
+
+    while mainloop and loop_loop:
+        frame_start = time.time()
+        root.update_idletasks()
+        root.update()
+        
+
+        draw_canvas()
+
+        if sleep_time > 0:
+            sleep_time -= (time.time() - frame_start)
+        else:
+            sleep_time = 0
+            daycount = False
+
+        if sleep_time <= 0.3 and sleep_time > 0:
+            show_to_do()
+
+        if sleep_time <= 2.5 and sleep_time > 0 and not daycount:
+            hide_sleep()
+            days += 1
+            daycount = True
+            update_to_do = True
+
+        update_count += 1
+        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r") 
 
 
 root.destroy()

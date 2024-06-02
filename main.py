@@ -445,6 +445,10 @@ def create_sleep_overlay():
 
 def draw_setup():
     global canvas, canvas_label, canvas_tk, num_rules, num_wall_rules, sleep_time, setup_scroll
+    
+    draw_asset("back")
+    draw_asset("title")
+
 
     draw_asset("setup_menu", (0, -setup_scroll))
 
@@ -493,16 +497,25 @@ def dincrement_setup_scroll():
     global setup_scroll
     setup_scroll = max(0, setup_scroll - 24)
 
+def hide_setup():
+    global setup_loop, setup_scroll, mainloop, title_loop, to_do_pos
+    if setup_scroll > -336:
+        setup_scroll = max(-336, setup_scroll-24)
+        root.after(1, hide_setup)
+    else:
+        mainloop = False
+        setup_loop = False
+        title_loop = True
+        to_do_pos = 15.8
+
 def handle_keypress_setup(e):
-    global setup_loop, sleep_time, setup_scroll
+    global setup_loop, sleep_time, setup_scroll, mainloop, title_loop, to_do_pos
 
     if sleep_time > 0:
         return
 
     elif e.keysym.lower() == "a":
-        mainloop = False
-        setup_loop = False
-        title_loop = True
+        hide_setup()
     
     elif e.keysym.lower() == "j":
         dincrement_num_rules()

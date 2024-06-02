@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, loop_loop, info_pos, info_after_id #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, loop_loop, info_pos, info_after_id, win #, SCALE
 
 REPO = "jan-kijetesantakalu/decorumish"
 
@@ -185,6 +185,9 @@ num_rules = 4       #Default values, can be overwritten later
 num_wall_rules = 2  #As above
 
 rules = []
+
+win = False
+win_pos = 336
 
 
 
@@ -648,20 +651,23 @@ def draw_rooms(rooms):
 def update_to_do_status(td):
     n_smileys = len(glob.glob(os.path.join("assets", "smileys", "*.png")))
     squiggle_y = 38
+    win = True
     drawn_wall_label = False
+    print("\nupdating to_do status:")
     for rule in rules: 
         if not rule["obj"] and not drawn_wall_label:
             drawn_wall_label = True
             squiggle_y += 18
         
         room_score = evaluate_rule(rooms, rule)
-
+        if room_score < 1:
+            win = False
         print(rule, "=>", room_score, f"[{round(room_score * (n_smileys-1))}]")
 
         draw_asset(os.path.join("smileys", f"smiley_{round(room_score * (n_smileys-1))}"), (11,squiggle_y), td)
 
         squiggle_y += 18
-    return td
+    return td, win
 
 def create_cursor():
     global cursor_pos
@@ -703,7 +709,7 @@ def create_cursor():
 
 
 def draw_canvas():
-    global canvas, canvas_label, canvas_tk, cursor_pos, to_do, to_do_pos, update_to_do, sleep_time, days
+    global canvas, canvas_label, canvas_tk, cursor_pos, to_do, to_do_pos, update_to_do, sleep_time, days, win, win_pos
     
     #Load and Place Background
     draw_asset("back")
@@ -718,16 +724,22 @@ def draw_canvas():
         
     if update_to_do:
         update_to_do = False
-        to_do = update_to_do_status(to_do)
-
-    draw_img(to_do, (576-int(92*to_do_pos),0))
+        to_do, win = update_to_do_status(to_do)
+        if win:
+            print("all rules satisfied")
+    
+    if win:
+        draw_asset("win_screen", (0, win_pos))
+        if sleep_time <= 0.5 and win_pos > 0:
+            win_pos = max(win_pos-24, 0)
+    else:
+        draw_img(to_do, (576-int(92*to_do_pos),0))
 
     draw_asset(os.path.join(f"sleep", f"sleep_{rooms['bedroom']['colour']}"), (0, -24+int(360*(1-sleep_pos))))
 
     if sleep_time > 0:
         # sleeping
         draw_img(create_sleep_overlay())
-
     
     finalise_canvas()
 
@@ -876,7 +888,14 @@ def commit_sleep():
     
 
 def handle_keypress(e):
-    global cursor_pos, sleep_pos, sleep_time, to_do_pos
+    global cursor_pos, sleep_pos, sleep_time, to_do_pos, win, win_pos
+
+    if win:
+        if e.keysym.lower() == "i":
+            win_pos = min(win_pos+24, 0)
+        elif e.keysym.lower() == "k":
+            win_pos = max(win_pos-24, -672)
+        return
      
     if sleep_time > 0:
         return
@@ -1002,7 +1021,8 @@ while loop_loop:
 
     rules = []
 
-
+    win = False
+    win_pos = 336
 
 
     #Empty Room Initilisation

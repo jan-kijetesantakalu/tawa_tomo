@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, loop_loop, info_pos, info_after_id, win #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, loop_loop, info_pos, info_after_id, win, win_after_id #, SCALE
 
 REPO = "jan-kijetesantakalu/decorumish"
 
@@ -112,6 +112,8 @@ root.protocol("WM_DELETE_WINDOW", exit_loop)
 root.title("tawa tomo - jan Kili Lili anu jan Kijetesantakalu")
 root.wm_iconphoto(True, ImageTk.PhotoImage(open_asset("icon"))) 
 
+
+win_after_id = None
 WIDTH = root.winfo_screenwidth()
 HEIGHT = root.winfo_screenheight()
 
@@ -746,12 +748,11 @@ def draw_canvas():
         if win:
             print("all rules satisfied")
     
-    if win:
-        draw_asset("win_screen", (0, win_pos))
-        if sleep_time <= 0.5 and win_pos > 0:
-            win_pos = max(win_pos-24, 0)
-    else:
-        draw_img(to_do, (576-int(92*to_do_pos),0))
+    draw_img(to_do, (576-int(92*to_do_pos),0))
+    
+    draw_asset("win_screen", (0, win_pos))
+    if win and sleep_time <= 0.5 and win_pos > 0:
+        win_pos = max(win_pos-24, 0)
 
     draw_asset(os.path.join(f"sleep", f"sleep_{rooms['bedroom']['colour']}"), (0, -24+int(360*(1-sleep_pos))))
 
@@ -881,10 +882,13 @@ def show_quit(e=None):
 
 
 def quit_to_title(e=None):
-    global to_do_pos, to_do_after_id, mainloop, setup_loop, title_loop    
+    global to_do_pos, to_do_after_id, mainloop, setup_loop, title_loop, win_pos, win
     if e != None and sleep_time > 0:
         return
     
+    if win:
+        win_pos = min(win_pos+72, 336)
+
     if to_do_pos < 15.4:
         to_do_pos += 0.001+((to_do_pos)/8)+((to_do_pos)/12)**1.5
         try:
@@ -904,15 +908,40 @@ def commit_sleep():
     global sleep_time
     sleep_time = 5
     
+def show_win():
+    global win_pos, win_after_id
+    if win:
+        win_pos = min(win_pos+48, 336)
+        try:
+            root.after_cancel(win_after_id)
+            win_after_id = None
+        except:
+            pass
+        win_after_id = root.after(1, show_win)
 
+def hide_win():
+    global win_after_id
+    try:
+        root.after_cancel(win_after_id)
+        win_after_id = None
+    except:
+        pass
 def handle_keypress(e):
     global cursor_pos, sleep_pos, sleep_time, to_do_pos, win, win_pos
 
     if win:
         if e.keysym.lower() == "i":
-            win_pos = min(win_pos+24, 0)
+            if win_pos + 24 <= 0:
+                win_pos+=24
         elif e.keysym.lower() == "k":
-            win_pos = max(win_pos-24, -672)
+            if win_pos - 24 >= -672:
+                win_pos-=24
+        elif e.keysym.lower() == 'down':
+            show_win()
+        elif e.keysym.lower() == 'up':
+            hide_win()
+        elif e.keysym.lower() in ["a", "s", "d", "f", "z", "x", "c", "v"]:
+            quit_to_title()
         return
      
     if sleep_time > 0:
@@ -1042,6 +1071,8 @@ while loop_loop:
     win = False
     win_pos = 336
 
+    win_after_id = None
+
 
     #Empty Room Initilisation
     rooms = {"bathroom": {}, "bedroom": {}, "kitchen":{}, "lounge": {}} #Contains the rooms
@@ -1111,7 +1142,6 @@ while loop_loop:
     mainloop = True
 
     setup_loop = True
-
 
     #SETUP
 

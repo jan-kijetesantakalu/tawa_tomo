@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, loop_loop #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, loop_loop, info_pos, info_after_id #, SCALE
 
 REPO = "jan-kijetesantakalu/decorumish"
 
@@ -177,6 +177,7 @@ to_do = open_asset("to_do")
 sleep_pos = 0 #float, 0-1 (incl) interpolated the position of the sleep image
 sleep_time = 0 #The number of frames to sleep for
 
+info_pos = 0
 
 days = 0 #The number of days passed (in game)
 
@@ -184,6 +185,7 @@ num_rules = 4       #Default values, can be overwritten later
 num_wall_rules = 2  #As above
 
 rules = []
+
 
 
 #Empty Room Initilisation
@@ -517,6 +519,34 @@ def handle_keypress_setup(e):
             sleep_time = 5
 
 
+def show_info(e=None):
+    global info_pos, info_after_id
+    
+    if info_pos < 1:
+        info_pos += 0.03+((1-info_pos)/16)+((1-info_pos)/4)**2
+        try:
+            root.after_cancel(info_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        info_after_id = root.after(1, show_info)
+    info_pos = min(info_pos, 1)
+
+def hide_info(e=None):
+    global info_pos, info_after_id
+    
+    show_to_do()
+
+    if info_pos > 0:
+        info_pos -= 0.03+(info_pos/16)+(info_pos/4)**2
+        try:
+            root.after_cancel(info_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        info_after_id = root.after(1, hide_info)
+    info_pos = max(info_pos, 0)
+
 def handle_keypress_title(e=None):
     global title_loop
 
@@ -524,13 +554,17 @@ def handle_keypress_title(e=None):
         title_loop = False
 
     elif e.keysym.lower() == "s":
-        pass
+        if info_pos < 0.2:
+            show_info(e)
+        else:
+            hide_info(e)
 
     elif e.keysym.lower() == "d":
         pass
 
     elif e.keysym.lower() == "f":
         exit_loop()
+        hide_info(e)
 
 def create_to_do():
     #draw to do list
@@ -935,6 +969,7 @@ while loop_loop:
         draw_asset("back")
         draw_asset("title")
         draw_img(to_do, (576-int(92*to_do_pos),0))
+        draw_asset("info_menu", (0, int(360*(1-info_pos))))
         finalise_canvas()
         update_count += 1
         print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
@@ -951,6 +986,7 @@ while loop_loop:
     sleep_pos = 0 #float, 0-1 (incl) interpolated the position of the sleep image
     sleep_time = 0 #The number of frames to sleep for
 
+    info_pos = 0
 
     days = 0 #The number of days passed (in game)
 
@@ -958,6 +994,8 @@ while loop_loop:
     num_wall_rules = 2  #As above
 
     rules = []
+
+
 
 
     #Empty Room Initilisation

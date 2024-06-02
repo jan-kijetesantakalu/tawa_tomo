@@ -1,7 +1,5 @@
 Background
 - foreground
-- background
-- sky
 
 Re-do bed menu
 

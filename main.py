@@ -499,6 +499,11 @@ def handle_keypress_setup(e):
     if sleep_time > 0:
         return
 
+    elif e.keysym.lower() == "a":
+        mainloop = False
+        setup_loop = False
+        title_loop = True
+    
     elif e.keysym.lower() == "j":
         dincrement_num_rules()
 
@@ -1090,6 +1095,11 @@ while loop_loop:
     setup_scroll = -336
 
 
+    mainloop = True
+
+    setup_loop = True
+
+
     #SETUP
 
     while setup_loop and loop_loop and setup_scroll < 0:
@@ -1136,7 +1146,6 @@ while loop_loop:
 
     daycount = False
 
-    mainloop = True
 
     while mainloop and loop_loop:
         frame_start = time.time()

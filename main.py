@@ -996,4 +996,91 @@ while loop_loop:
         update_count += 1
         print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
+    
+    
+    #Initilise Default Values
+    cursor_pos = 0 # Taken mod 16, the index of the cursor in CURSOR_ORDER
+
+    to_do_pos = 1 #float, 0-1 (incl) interpolated the position of the to_do image
+
+    update_to_do = False
+    to_do = open_asset("to_do")
+
+    sleep_pos = 0 #float, 0-1 (incl) interpolated the position of the sleep image
+    sleep_time = 0 #The number of frames to sleep for
+
+
+    days = 0 #The number of days passed (in game)
+
+    num_rules = 4       #Default values, can be overwritten later
+    num_wall_rules = 2  #As above
+
+    rules = []
+
+
+    #Empty Room Initilisation
+    rooms = {"bathroom": {}, "bedroom": {}, "kitchen":{}, "lounge": {}} #Contains the rooms
+    rooms["bathroom"] = {
+            "colour": choice(COLOURS), 
+                        
+            "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":51, "ypos":95}, 
+            "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":183, "ypos":67},
+            "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":103, "ypos":123},
+            
+            "top": True,
+            "left": True,
+                        
+            "img": None,
+            "xpos": None,
+            "ypos": None
+    }
+
+    rooms["bedroom"]  = {
+           "colour": choice(COLOURS), 
+            
+            "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 179, "ypos": 67}, 
+            "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 115, "ypos": 107},
+            "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 77, "ypos": 95},
+                        
+            "top": True,
+            "left": False,
+                        
+            "img": None,
+            "xpos": None,
+            "ypos": None
+    }
+
+    rooms["kitchen"]  = {
+            "colour": choice(COLOURS), 
+                         
+            "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 71, "ypos": 59}, 
+            "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 39, "ypos": 86},
+            "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 143, "ypos": 86},
+                        
+            "top": False,
+            "left": False,
+                        
+            "img": None,
+            "xpos": None,
+            "ypos": None
+    }
+
+    rooms["lounge"]  = {
+            "colour": choice(COLOURS), 
+            
+            "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 139, "ypos": 63}, 
+            "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 183, "ypos": 123},
+            "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 87, "ypos": 123},
+                        
+            "top": False,
+            "left": True,
+                        
+            "img": None,
+            "xpos": None,
+            "ypos": None            
+    }
+        
+    setup_scroll = -336
+
+
 root.destroy()

@@ -551,7 +551,10 @@ def handle_keypress_title(e=None):
     global title_loop
 
     if e.keysym.lower() == "a":
-        title_loop = False
+        if info_pos < 0.2:
+            title_loop = False
+        else:
+            hide_info(e)
 
     elif e.keysym.lower() == "s":
         if info_pos < 0.2:
@@ -560,11 +563,15 @@ def handle_keypress_title(e=None):
             hide_info(e)
 
     elif e.keysym.lower() == "d":
-        pass
+        if info_pos < 0.2:
+            pass
+        else:
+            hide_info(e)
 
     elif e.keysym.lower() == "f":
-        exit_loop()
         hide_info(e)
+        if info_pos < 0.2: 
+            exit_loop()
 
 def create_to_do():
     #draw to do list

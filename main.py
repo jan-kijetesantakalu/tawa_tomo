@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, loop_loop #, SCALE
 
 REPO = "jan-kijetesantakalu/decorumish"
 
@@ -7,6 +7,8 @@ from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import glob, sys, os, time, requests
 import socket
+loop_loop = True
+
 
 #https://stackoverflow.com/questions/3764291/how-can-i-see-if-theres-an-available-and-active-network-connection-in-python
 def internet(host="api.github.com", port=443, timeout=3):
@@ -64,10 +66,11 @@ setup_scroll = -336
 img_cache = {}
 
 def exit_loop():
-    global mainloop, setup_loop, title_loop
+    global mainloop, setup_loop, title_loop, loop_loop
     mainloop = False
     setup_loop = False
     title_loop = False
+    loop_loop = False
 
 #Create Canvas Image
 canvas = Image.new(mode= "RGBA", size=(596,336))
@@ -793,7 +796,7 @@ def show_quit(e=None):
 
 
 def quit_to_title(e=None):
-    global to_do_pos, to_do_after_id    
+    global to_do_pos, to_do_after_id, mainloop, setup_loop, title_loop    
     if e != None and sleep_time > 0:
         return
     
@@ -807,7 +810,9 @@ def quit_to_title(e=None):
         to_do_after_id = root.after(1, quit_to_title)
     
     else:
-        root.after(200, exit_loop)
+        mainloop = False
+        setup_loop = True
+        title_loop = True
 
 
 def commit_sleep():
@@ -900,14 +905,14 @@ def handle_keypress(e):
             else:
                 cursor_obj["style"] = "unusual"
 
-while True:
+while loop_loop:
     root.unbind("<KeyPress>")
     root.bind("<KeyPress>", handle_keypress_title)
 
     # title
-
     title_loop = True
-    while title_loop:
+
+    while title_loop and loop_loop:
         frame_start = time.time()
         root.update_idletasks()         
         root.update()
@@ -919,7 +924,7 @@ while True:
 
     #SETUP
 
-    while setup_loop and setup_scroll < 0:
+    while setup_loop and loop_loop and setup_scroll < 0:
         frame_start = time.time()
         root.update_idletasks()
         root.update()
@@ -932,7 +937,7 @@ while True:
     root.unbind("<KeyPress>")
     root.bind("<KeyPress>", handle_keypress_setup)
     setup_sleep = True
-    while setup_loop:
+    while setup_loop and loop_loop:
         frame_start = time.time()
         root.update_idletasks()
         root.update()
@@ -963,7 +968,9 @@ while True:
 
     daycount = False
 
-    while mainloop:
+    mainloop = True
+
+    while mainloop and loop_loop:
         frame_start = time.time()
         root.update_idletasks()
         root.update()

@@ -3,8 +3,6 @@ Background
 - background
 - sky
 
-Colourful cursor
-
 Re-do bed menu
 
 Title screen

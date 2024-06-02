@@ -51,7 +51,7 @@ if os.path.isfile(".git/HEAD"):
         else:
             print(f"Local version: {VERSION} matches remote.")
     else:  
-        print("Can't check update status, Local version: {VERSION}.")
+        print(f"Can't check update status, Local version: {VERSION}.")
 else:
     print(f"Not running in git repository.\nCan't check update status or version.")
     

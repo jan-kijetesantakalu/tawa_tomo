@@ -1,15 +1,11 @@
 Background
 - foreground
 
-Re-do bed menu
-
 Title screen
 - title (tomo tawa)
-- controls (+ rule types)
+- controls (+ rule types) book
 - lore
 
-kijetesantakalu bit on startup 
-
-To Do right side ripped
+Sleep mask?
 
 Exrta rule types

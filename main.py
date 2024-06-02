@@ -99,9 +99,11 @@ def open_asset(asset = "placeholder", bypass_cache = False):
 
 def draw_img(img = open_asset("placeholder"), pos = (0, 0), dest = canvas):
     Image.Image.paste(dest, img, pos, img.convert("RGBA"))
+    return dest
 
 def draw_asset(asset = "placeholder", pos = (0,0), dest = canvas):
-    draw_img(open_asset(asset), pos, dest)
+    dest = draw_img(open_asset(asset), pos, dest)
+    return dest
 
 #Create Root Window
 root = tk.Tk()
@@ -628,22 +630,31 @@ def create_cursor():
     cursor_obj = cursor_room[cursor_loc[1]] if cursor_loc[1] != "wall" else cursor_room
 
     if cursor_obj["img"].size == (32,32):
-        cursor_img = open_asset("cursor_square")
+        if cursor_obj["style"] == None:
+            cursor_img = [open_asset(os.path.join("cursor", "cursor_square"))]
+        else:
+            cursor_img =[open_asset(os.path.join("cursor", f"cursor_square_{cursor_obj['colour']}")), open_asset(os.path.join("cursor", f"cursor_square_{cursor_obj['style']}"))]
         cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
         cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
 
     elif cursor_obj["img"].size == (32,64):
-        cursor_img = open_asset("cursor_tall")
+        if cursor_obj["style"] == None:
+            cursor_img = [open_asset(os.path.join("cursor", "cursor_tall"))]
+        else:
+            cursor_img =[open_asset(os.path.join("cursor", f"cursor_tall_{cursor_obj['colour']}")), open_asset(os.path.join("cursor", f"cursor_tall_{cursor_obj['style']}"))]
         cur_xpos = cursor_obj["xpos"]-31+cursor_room["xpos"]
         cur_ypos = cursor_obj["ypos"]-63+cursor_room["ypos"]
 
     elif cursor_obj["img"].size == (64,32):
-        cursor_img = open_asset("cursor_wide")
+        if cursor_obj["style"] == None:
+            cursor_img = [open_asset(os.path.join("cursor","cursor_wide"))]
+        else:
+            cursor_img =[open_asset(os.path.join("cursor", f"cursor_wide_{cursor_obj['colour']}")), open_asset(os.path.join("cursor", f"cursor_wide_{cursor_obj['style']}"))]
         cur_xpos = cursor_obj["xpos"]-63+cursor_room["xpos"]
         cur_ypos = cursor_obj["ypos"]-31+cursor_room["ypos"]
     
     else:
-        cursor_img = open_asset("cursor_room")
+        cursor_img = [open_asset(os.path.join("cursor",f"cursor_room_{cursor_obj['colour']}"))]
         cur_xpos = cursor_obj["xpos"]
         cur_ypos = cursor_obj["ypos"]
     
@@ -659,7 +670,10 @@ def draw_canvas():
     #Draw rooms and objects onto canvas
     draw_rooms(rooms)
 
-    draw_img(*create_cursor())
+    cursor_img, cursor_drawpos = create_cursor()
+
+    for img in cursor_img:
+        draw_img(img, cursor_drawpos)
         
     if update_to_do:
         update_to_do = False

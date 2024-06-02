@@ -809,9 +809,10 @@ def quit_to_title(e=None):
             pass 
         to_do_after_id = root.after(1, quit_to_title)
     
-    mainloop = False
-    setup_loop = True
-    title_loop = True
+    if to_do_pos > 5:
+        mainloop = False
+        setup_loop = True
+        title_loop = True
 
 
 def commit_sleep():

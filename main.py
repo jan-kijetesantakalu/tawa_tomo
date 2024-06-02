@@ -900,93 +900,93 @@ def handle_keypress(e):
             else:
                 cursor_obj["style"] = "unusual"
 
+while True:
+    root.unbind("<KeyPress>")
+    root.bind("<KeyPress>", handle_keypress_title)
 
-root.bind("<KeyPress>", handle_keypress_title)
+    # title
+
+    title_loop = True
+    while title_loop:
+        frame_start = time.time()
+        root.update_idletasks()         
+        root.update()
+        draw_asset("back")
+        draw_asset("title")
+        finalise_canvas()
+        update_count += 1
+        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
+
+    #SETUP
+
+    while setup_loop and setup_scroll < 0:
+        frame_start = time.time()
+        root.update_idletasks()
+        root.update()
+        draw_setup()
+        update_count += 1
+        if setup_scroll < 0:
+            setup_scroll += 40
+        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
+
+    root.unbind("<KeyPress>")
+    root.bind("<KeyPress>", handle_keypress_setup)
+    setup_sleep = True
+    while setup_loop:
+        frame_start = time.time()
+        root.update_idletasks()
+        root.update()
+        draw_setup()
+        if sleep_time <= 2.5 and sleep_time > 0:
+            setup_loop = False
+
+        if sleep_time > 0:
+            sleep_time -= (time.time() - frame_start)
+            
+        update_count += 1
+        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
+
+    root.unbind("<KeyPress>")
+
+    rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
+
+    for rule in rules:
+        print(rule)
 
 
-# title
+    to_do = create_to_do()
 
-title_loop = True
-while title_loop:
-    frame_start = time.time()
-    root.update_idletasks()         
-    root.update()
-    draw_asset("back")
-    draw_asset("title")
-    finalise_canvas()
-    update_count += 1
-    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
-#SETUP
+    #MAINLOOP
+    root.bind("<KeyPress>", handle_keypress)
 
-while setup_loop and setup_scroll < 0:
-    frame_start = time.time()
-    root.update_idletasks()
-    root.update()
-    draw_setup()
-    update_count += 1
-    if setup_scroll < 0:
-        setup_scroll += 40
-    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
-root.unbind("<KeyPress>")
-root.bind("<KeyPress>", handle_keypress_setup)
-setup_sleep = True
-while setup_loop:
-    frame_start = time.time()
-    root.update_idletasks()
-    root.update()
-    draw_setup()
-    if sleep_time <= 2.5 and sleep_time > 0:
-        setup_loop = False
+    daycount = False
 
-    if sleep_time > 0:
-        sleep_time -= (time.time() - frame_start)
+    while mainloop:
+        frame_start = time.time()
+        root.update_idletasks()
+        root.update()
         
-    update_count += 1
-    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
-root.unbind("<KeyPress>")
+        draw_canvas()
 
-rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
+        if sleep_time > 0:
+            sleep_time -= (time.time() - frame_start)
+        else:
+            sleep_time = 0
+            daycount = False
 
-for rule in rules:
-    print(rule)
+        if sleep_time <= 0.3 and sleep_time > 0:
+            show_to_do()
 
+        if sleep_time <= 2.5 and sleep_time > 0 and not daycount:
+            hide_sleep()
+            days += 1
+            daycount = True
+            update_to_do = True
 
-to_do = create_to_do()
-
-
-#MAINLOOP
-root.bind("<KeyPress>", handle_keypress)
-
-
-daycount = False
-
-while mainloop:
-    frame_start = time.time()
-    root.update_idletasks()
-    root.update()
-    
-
-    draw_canvas()
-
-    if sleep_time > 0:
-        sleep_time -= (time.time() - frame_start)
-    else:
-        sleep_time = 0
-        daycount = False
-
-    if sleep_time <= 0.3 and sleep_time > 0:
-        show_to_do()
-
-    if sleep_time <= 2.5 and sleep_time > 0 and not daycount:
-        hide_sleep()
-        days += 1
-        daycount = True
-        update_to_do = True
-
-    update_count += 1
-    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
+        update_count += 1
+        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
 root.destroy()

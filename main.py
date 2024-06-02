@@ -443,9 +443,9 @@ def draw_setup():
 
     draw_asset("setup_menu", (0, -setup_scroll))
 
-    draw_asset(f"numbers/number_{num_rules}", (107, 376-setup_scroll))
+    draw_asset(f"numbers/number_{num_rules}", (107, 397-setup_scroll))
 
-    draw_asset(f"numbers/number_{num_wall_rules}", (114, 393-setup_scroll))
+    draw_asset(f"numbers/number_{num_wall_rules}", (114, 414-setup_scroll))
     
     if sleep_time > 0:
         draw_img(create_sleep_overlay())

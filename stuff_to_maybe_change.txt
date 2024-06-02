@@ -7,7 +7,7 @@ Warm and cool colours because cool
 
 kijetesantakalu bit on startup 
 
-Title screen
+kkTitle screen
 - title (tomo tawa)
 - controls (+ rule types)
 - lore

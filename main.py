@@ -517,7 +517,7 @@ def handle_keypress_setup(e):
     elif e.keysym.lower() == "right":
         increment_num_wall_rules()
     
-    elif e.keysym.lower() == "down":
+    elif e.keysym.lower() == "up":
         if setup_scroll >= 336:
             sleep_time = 5
 

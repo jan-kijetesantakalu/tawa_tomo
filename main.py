@@ -751,6 +751,12 @@ def draw_canvas():
     draw_img(to_do, (576-int(92*to_do_pos),0))
     
     draw_asset("win_screen", (0, win_pos))
+    if days < 10:
+        draw_asset(os.path.join("numbers", f"number_{days}"), (392, win_pos+263))
+    else:
+        draw_asset(os.path.join("numbers", f"number_{str(days)[0]}"), (388, win_pos+263))
+        draw_asset(os.path.join("numbers", f"number_{str(days)[1]}"), (398, win_pos+263))
+        
     if win and sleep_time <= 0.5 and win_pos > 0:
         win_pos = max(win_pos-24, 0)
 

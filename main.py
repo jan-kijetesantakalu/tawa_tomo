@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, mainloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, loop_loop, info_pos, info_after_id, win, win_after_id #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id #, SCALE
 
 REPO = "jan-kijetesantakalu/decorumish"
 
@@ -7,7 +7,7 @@ from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import glob, sys, os, time, requests
 import socket
-loop_loop = True
+mainloop = True
 
 
 #https://stackoverflow.com/questions/3764291/how-can-i-see-if-theres-an-available-and-active-network-connection-in-python
@@ -38,9 +38,9 @@ if os.path.isfile(".git/HEAD"):
     except OSError:
         print("Error accessing git HEAD")
 
+    try:    
+        if internet() and ":" in VERSION:
 
-    if internet() and ":" in VERSION:
-        try:    
             ONLINE_VERSION = requests.get(f"https://raw.githubusercontent.com/{REPO}/main/version").text
             ONLINE_HASH = requests.get(f"https://api.github.com/repos/{REPO}/commits").json()[0]["sha"]
             ONLINE_VERSION += ":" + ONLINE_HASH
@@ -51,29 +51,34 @@ if os.path.isfile(".git/HEAD"):
                 input("Press enter to continue anyway.")
             else:
                 print(f"Local version: {VERSION} matches remote.")
-        except Exception as e:
-            print(f"Can't acess git repo {REPO}, Local version: {VERSION}")
-    else:  
-        print(f"Can't check update status, Local version: {VERSION}.")
+        else:  
+            print(f"Can't check update status, Local version: {VERSION}.")
+    except Exception as e:
+            print(f"Can't acess git repo {REPO}, Local version: {VERSION} {e}")
+
 else:
     print(f"Not running in git repository.\nCan't check update status or version.")
     
+
+
 #Disable printing if not in debug mode
 if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
     sys.stdout = open(os.devnull, 'w')
 
-mainloop = True
+
+
+gameloop = True
 setup_loop = True
 setup_scroll = -336
 
 img_cache = {}
 
 def exit_loop():
-    global mainloop, setup_loop, title_loop, loop_loop
-    mainloop = False
+    global gameloop, setup_loop, title_loop, mainloop
+    gameloop = False
     setup_loop = False
     title_loop = False
-    loop_loop = False
+    mainloop = False
 
 #Create Canvas Image
 canvas = Image.new(mode= "RGBA", size=(596,336))
@@ -140,24 +145,6 @@ def finalise_canvas():
     canvas_label.config(image = canvas_tk)
 
 
-#SPLASH SCREEN
-
-update_count = 0
-
-start_time = time.time()
-
-while time.time() - start_time < 3:
-    frame_start = time.time()
-    
-    root.update_idletasks()
-    root.update()
-    
-    draw_asset("splash")
-    finalise_canvas()
-    
-    update_count += 1
-    print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
-    
 
 #Initilse Constants
 
@@ -503,18 +490,18 @@ def dincrement_setup_scroll():
     setup_scroll = max(0, setup_scroll - 24)
 
 def hide_setup():
-    global setup_loop, setup_scroll, mainloop, title_loop, to_do_pos
+    global setup_loop, setup_scroll, gameloop, title_loop, to_do_pos
     if setup_scroll > -336:
         setup_scroll = max(-336, setup_scroll-24)
         root.after(1, hide_setup)
     else:
-        mainloop = False
+        gameloop = False
         setup_loop = False
         title_loop = True
         to_do_pos = 15.8
 
 def handle_keypress_setup(e):
-    global setup_loop, sleep_time, setup_scroll, mainloop, title_loop, to_do_pos
+    global setup_loop, sleep_time, setup_scroll, gameloop, title_loop, to_do_pos
 
     if sleep_time > 0:
         return
@@ -631,7 +618,7 @@ def create_to_do():
     
     return td
 
-#MAINLOOP SCREEN
+#gameloop SCREEN
 
 def draw_object(room, rooms, obj_type):
     #Open object or placeholder
@@ -891,7 +878,7 @@ def show_quit(e=None):
 
 
 def quit_to_title(e=None):
-    global to_do_pos, to_do_after_id, mainloop, setup_loop, title_loop, win_pos, win
+    global to_do_pos, to_do_after_id, gameloop, setup_loop, title_loop, win_pos, win
     if e != None and sleep_time > 0:
         return
     
@@ -908,7 +895,7 @@ def quit_to_title(e=None):
         to_do_after_id = root.after(1, quit_to_title)
     
     if to_do_pos > 5:
-        mainloop = False
+        gameloop = False
         setup_loop = True
         title_loop = True
 
@@ -1037,193 +1024,214 @@ def handle_keypress(e):
 
 to_do_pos = 15.8
 
-while loop_loop:
-    root.unbind("<KeyPress>")
-    root.bind("<KeyPress>", handle_keypress_title)
+try:
+    #SPLASH SCREEN
 
-    # title
-    title_loop = True
+    update_count = 0
 
-    while title_loop and loop_loop:
+    start_time = time.time()
+
+    while time.time() - start_time < 3:
         frame_start = time.time()
-        root.update_idletasks()         
+    
+        root.update_idletasks()
         root.update()
-        draw_asset("back")
-        draw_asset("title")
-        draw_img(to_do, (576-int(92*to_do_pos),0))
-        draw_asset("info_menu", (0, int(360*(1-info_pos))))
+    
+        draw_asset("splash")
         finalise_canvas()
+    
         update_count += 1
         print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
+    
+
+    while mainloop:
+        root.unbind("<KeyPress>")
+        root.bind("<KeyPress>", handle_keypress_title)
+
+        # title
+        title_loop = True
+
+        while title_loop and mainloop:
+            frame_start = time.time()
+            root.update_idletasks()         
+            root.update()
+            draw_asset("back")
+            draw_asset("title")
+            draw_img(to_do, (576-int(92*to_do_pos),0))
+            draw_asset("info_menu", (0, int(360*(1-info_pos))))
+            finalise_canvas()
+            update_count += 1
+            print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
 
 
-    #Initilise Default Values
-    cursor_pos = 0 # Taken mod 16, the index of the cursor in CURSOR_ORDER
+        #Initilise Default Values
+        cursor_pos = 0 # Taken mod 16, the index of the cursor in CURSOR_ORDER
 
-    to_do_pos = 1 #float, 0-1 (incl) interpolated the position of the to_do image
+        to_do_pos = 1 #float, 0-1 (incl) interpolated the position of the to_do image
 
-    update_to_do = False
-    to_do = open_asset("to_do")
+        update_to_do = False
+        to_do = open_asset("to_do")
 
-    sleep_pos = 0 #float, 0-1 (incl) interpolated the position of the sleep image
-    sleep_time = 0 #The number of frames to sleep for
+        sleep_pos = 0 #float, 0-1 (incl) interpolated the position of the sleep image
+        sleep_time = 0 #The number of frames to sleep for
 
-    info_pos = 0
+        info_pos = 0
 
-    days = 0 #The number of days passed (in game)
+        days = 0 #The number of days passed (in game)
 
-    num_rules = 4       #Default values, can be overwritten later
-    num_wall_rules = 2  #As above
+        num_rules = 4       #Default values, can be overwritten later
+        num_wall_rules = 2  #As above
 
-    rules = []
+        rules = []
 
-    win = False
-    win_pos = 336
+        win = False
+        win_pos = 336
 
-    win_after_id = None
+        win_after_id = None
 
 
-    #Empty Room Initilisation
-    rooms = {"bathroom": {}, "bedroom": {}, "kitchen":{}, "lounge": {}} #Contains the rooms
-    rooms["bathroom"] = {
+        #Empty Room Initilisation
+        rooms = {"bathroom": {}, "bedroom": {}, "kitchen":{}, "lounge": {}} #Contains the rooms
+        rooms["bathroom"] = {
+                "colour": choice(COLOURS), 
+                            
+                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":51, "ypos":95}, 
+                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":183, "ypos":67},
+                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":103, "ypos":123},
+                
+                "top": True,
+                "left": True,
+                            
+                "img": None,
+                "xpos": None,
+                "ypos": None
+        }
+
+        rooms["bedroom"]  = {
             "colour": choice(COLOURS), 
-                        
-            "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":51, "ypos":95}, 
-            "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":183, "ypos":67},
-            "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":103, "ypos":123},
+                
+                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 179, "ypos": 67}, 
+                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 115, "ypos": 107},
+                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 77, "ypos": 95},
+                            
+                "top": True,
+                "left": False,
+                            
+                "img": None,
+                "xpos": None,
+                "ypos": None
+        }
+
+        rooms["kitchen"]  = {
+                "colour": choice(COLOURS), 
+                            
+                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 71, "ypos": 59}, 
+                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 39, "ypos": 86},
+                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 143, "ypos": 86},
+                            
+                "top": False,
+                "left": False,
+                            
+                "img": None,
+                "xpos": None,
+                "ypos": None
+        }
+
+        rooms["lounge"]  = {
+                "colour": choice(COLOURS), 
+                
+                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 139, "ypos": 63}, 
+                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 183, "ypos": 123},
+                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 87, "ypos": 123},
+                            
+                "top": False,
+                "left": True,
+                            
+                "img": None,
+                "xpos": None,
+                "ypos": None            
+        }
             
-            "top": True,
-            "left": True,
-                        
-            "img": None,
-            "xpos": None,
-            "ypos": None
-    }
+        setup_scroll = -336
 
-    rooms["bedroom"]  = {
-           "colour": choice(COLOURS), 
+
+        gameloop = True
+
+        setup_loop = True
+
+        #SETUP
+
+        while setup_loop and mainloop and setup_scroll < 0:
+            frame_start = time.time()
+            root.update_idletasks()
+            root.update()
+            draw_setup()
+            update_count += 1
+            if setup_scroll < 0:
+                setup_scroll += 40
+            print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
+
+        root.unbind("<KeyPress>")
+        root.bind("<KeyPress>", handle_keypress_setup)
+        setup_sleep = True
+        while setup_loop and mainloop:
+            frame_start = time.time()
+            root.update_idletasks()
+            root.update()
+            draw_setup()
+            if sleep_time <= 2.5 and sleep_time > 0:
+                setup_loop = False
+
+            if sleep_time > 0:
+                sleep_time -= (time.time() - frame_start)
+                
+            update_count += 1
+            print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
+
+        root.unbind("<KeyPress>")
+
+        rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
+
+        for rule in rules:
+            print(rule)
+
+
+        to_do = create_to_do()
+
+
+        #gameloop
+        root.bind("<KeyPress>", handle_keypress)
+
+
+        daycount = False
+
+
+        while gameloop and mainloop:
+            frame_start = time.time()
+            root.update_idletasks()
+            root.update()
             
-            "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 179, "ypos": 67}, 
-            "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 115, "ypos": 107},
-            "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 77, "ypos": 95},
-                        
-            "top": True,
-            "left": False,
-                        
-            "img": None,
-            "xpos": None,
-            "ypos": None
-    }
 
-    rooms["kitchen"]  = {
-            "colour": choice(COLOURS), 
-                         
-            "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 71, "ypos": 59}, 
-            "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 39, "ypos": 86},
-            "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 143, "ypos": 86},
-                        
-            "top": False,
-            "left": False,
-                        
-            "img": None,
-            "xpos": None,
-            "ypos": None
-    }
+            draw_canvas()
 
-    rooms["lounge"]  = {
-            "colour": choice(COLOURS), 
-            
-            "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 139, "ypos": 63}, 
-            "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 183, "ypos": 123},
-            "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 87, "ypos": 123},
-                        
-            "top": False,
-            "left": True,
-                        
-            "img": None,
-            "xpos": None,
-            "ypos": None            
-    }
-        
-    setup_scroll = -336
+            if sleep_time > 0:
+                sleep_time -= (time.time() - frame_start)
+            else:
+                sleep_time = 0
+                daycount = False
 
+            if sleep_time <= 0.3 and sleep_time > 0:
+                show_to_do()
 
-    mainloop = True
+            if sleep_time <= 2.5 and sleep_time > 0 and not daycount:
+                hide_sleep()
+                days += 1
+                daycount = True
+                update_to_do = True
 
-    setup_loop = True
-
-    #SETUP
-
-    while setup_loop and loop_loop and setup_scroll < 0:
-        frame_start = time.time()
-        root.update_idletasks()
-        root.update()
-        draw_setup()
-        update_count += 1
-        if setup_scroll < 0:
-            setup_scroll += 40
-        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
-
-    root.unbind("<KeyPress>")
-    root.bind("<KeyPress>", handle_keypress_setup)
-    setup_sleep = True
-    while setup_loop and loop_loop:
-        frame_start = time.time()
-        root.update_idletasks()
-        root.update()
-        draw_setup()
-        if sleep_time <= 2.5 and sleep_time > 0:
-            setup_loop = False
-
-        if sleep_time > 0:
-            sleep_time -= (time.time() - frame_start)
-            
-        update_count += 1
-        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")
-
-    root.unbind("<KeyPress>")
-
-    rules = create_obj_rules(num_rules) + create_wall_rules(num_wall_rules)
-
-    for rule in rules:
-        print(rule)
-
-
-    to_do = create_to_do()
-
-
-    #MAINLOOP
-    root.bind("<KeyPress>", handle_keypress)
-
-
-    daycount = False
-
-
-    while mainloop and loop_loop:
-        frame_start = time.time()
-        root.update_idletasks()
-        root.update()
-        
-
-        draw_canvas()
-
-        if sleep_time > 0:
-            sleep_time -= (time.time() - frame_start)
-        else:
-            sleep_time = 0
-            daycount = False
-
-        if sleep_time <= 0.3 and sleep_time > 0:
-            show_to_do()
-
-        if sleep_time <= 2.5 and sleep_time > 0 and not daycount:
-            hide_sleep()
-            days += 1
-            daycount = True
-            update_to_do = True
-
-        update_count += 1
-        print("FPS", round(1/(time.time() - frame_start), 2), end = "\r") 
-
+            update_count += 1
+            print("FPS", round(1/(time.time() - frame_start), 2), end = "\r") 
+except KeyboardInterrupt as KB:
+    print(KB)
 
 root.destroy()

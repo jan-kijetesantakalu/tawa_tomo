@@ -4,8 +4,8 @@ Background
 Title screen
 - title (tomo tawa)
 - controls (+ rule types) book
-- lore
-
-Sleep mask?
+- lore (Kijetesantakalu make font?)
 
 Exrta rule types
+
+'T' Info menu

@@ -16,7 +16,7 @@ def internet(host="api.github.com", port=443, timeout=3):
         socket.setdefaulttimeout(timeout)
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
         return True
-    except socket.error as ex:
+    except Exception as ex:
         print("Network not available:",ex)
         return False
     
@@ -40,16 +40,19 @@ if os.path.isfile(".git/HEAD"):
 
 
     if internet() and ":" in VERSION:
-        ONLINE_VERSION = requests.get(f"https://raw.githubusercontent.com/{REPO}/main/version").text
-        ONLINE_HASH = requests.get(f"https://api.github.com/repos/{REPO}/commits").json()[0]["sha"]
-        ONLINE_VERSION += ":" + ONLINE_HASH
+        try:    
+            ONLINE_VERSION = requests.get(f"https://raw.githubusercontent.com/{REPO}/main/version").text
+            ONLINE_HASH = requests.get(f"https://api.github.com/repos/{REPO}/commits").json()[0]["sha"]
+            ONLINE_VERSION += ":" + ONLINE_HASH
     
     
-        if VERSION != ONLINE_VERSION:
-            print(f"Local version {VERSION} does not match remote {ONLINE_VERSION}\nUpgrade with:\ngit pull")
-            input("Press enter to continue anyway.")
-        else:
-            print(f"Local version: {VERSION} matches remote.")
+            if VERSION != ONLINE_VERSION:
+                print(f"Local version {VERSION} does not match remote {ONLINE_VERSION}\nUpgrade with:\ngit pull")
+                input("Press enter to continue anyway.")
+            else:
+                print(f"Local version: {VERSION} matches remote.")
+        except Exception as e:
+            print(f"Can't acess git repo {REPO}, Local version: {VERSION}")
     else:  
         print(f"Can't check update status, Local version: {VERSION}.")
 else:

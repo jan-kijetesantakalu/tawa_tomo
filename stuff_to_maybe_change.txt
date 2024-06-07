@@ -8,4 +8,5 @@ Title screen
 
 Exrta rule types
 
-'T' Info menu
+'T' + 'I' Info Menu
+Left Page Info Menu

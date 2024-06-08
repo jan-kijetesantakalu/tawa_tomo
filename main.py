@@ -629,14 +629,14 @@ def handle_keypress_title(e=None):
             gallery_idx-=1
             houses = glob.glob(os.path.join("saved_houses", "*.tomo"))
     
-            if len(houses) > 0 and gallery_idx > len(houses) -1:
+            if len(houses) > 0:
                 gallery_idx %= len(houses)-1
 
         elif gallery and e.keysym.lower() == "l":
             gallery_idx+=1
             houses = glob.glob(os.path.join("saved_houses", "*.tomo"))
     
-            if len(houses) > 0 and gallery_idx > len(houses) -1:
+            if len(houses) > 0:
                 gallery_idx %= len(houses)-1
         
         
@@ -1089,7 +1089,7 @@ def load_saved_house(index = 0):
     if len(houses) == 0:
         return None
     print("found saves", houses)
-    if index > len(houses) -1:
+    if index > len(houses) -1 or index < 0 and len(houses) > 0:
         index %= len(houses)-1
     print(houses[index])
     return json.load(open(houses[index])), os.path.split(houses[index])[-1].split(".")[0]

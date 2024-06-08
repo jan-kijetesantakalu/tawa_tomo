@@ -1087,7 +1087,7 @@ def handle_keypress(e):
 def load_saved_house(index = 0):
     houses = glob.glob(os.path.join("saved_houses", "*.tomo"))
     if len(houses) == 0:
-        return None
+        return None, None
     print("found saves", houses)
     if index > len(houses) -1 or index < 0 and len(houses) > 0:
         index %= len(houses)-1

@@ -7,6 +7,8 @@ from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import glob, sys, os, time, requests
 import socket
+import numpy as np
+
 mainloop = True
 
 
@@ -566,29 +568,38 @@ def handle_keypress_title(e=None):
 
     if not title_extras:
         if e.keysym.lower() == "a":
-            if info_pos < 0.2:
+            if info_pos < 0.05:
                 title_loop = False
             else:
                 hide_info(e)
 
         elif e.keysym.lower() == "s":
-            if info_pos < 0.2:
+            if info_pos < 0.05:
                 show_info(e)
             else:
                 hide_info(e)
 
         elif e.keysym.lower() == "d":
-            if info_pos < 0.2:
+            if info_pos == 0:
                 title_extras = True
-            else:
+            elif info_pos > 0.05:
                 hide_info(e)
 
         elif e.keysym.lower() == "f":
             hide_info(e)
-            if info_pos < 0.2: 
+            if info_pos < 0.05: 
                 exit_loop()
     else:
-        if e.keysym.lower() == "f":
+        if e.keysym.lower() == "a":
+            pass
+
+        elif e.keysym.lower() == "s":
+            pass
+
+        elif e.keysym.lower() == "d":
+            pass
+
+        elif e.keysym.lower() == "f":
             title_extras = False
 
 def create_to_do():
@@ -660,7 +671,15 @@ def draw_rooms(rooms):
         for obj in TYPES:
             draw_object(room, rooms, obj)
 
-        
+def create_tv_noise(trans = 255*2):
+    if trans == 0:
+        return Image.new(mode = "RGBA")
+    img = np.random.rand(336, 596)
+    img = Image.fromarray(np.uint8(img*255), 'L').convert("RGBA")
+    img = np.array(img)
+    img[:,:,3] = np.uint8(np.clip((np.random.rand(336, 596)*trans), 0, 255))
+    img = Image.fromarray(img, 'RGBA')
+    return img        
 
 
 def update_to_do_status(td):
@@ -1067,6 +1086,7 @@ try:
                 draw_asset("title_extras")
             draw_img(to_do, (576-int(92*to_do_pos),0))
             draw_asset("info_menu", (0, int(360*(1-info_pos))))
+            draw_img(create_tv_noise())
             finalise_canvas()
             update_count += 1
             print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")

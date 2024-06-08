@@ -2,13 +2,9 @@ Background
 - foreground
 
 Title screen
-- title (tomo tawa)
 - controls (+ rule types) book
 - lore (Kijetesantakalu make font?)
 
 Exrta rule types
 
-Swap quit and DEVLOG?
-
-'T' + 'I' Info Menu
-Left Page Info Menu
+'T' Info menu

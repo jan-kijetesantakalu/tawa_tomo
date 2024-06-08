@@ -66,7 +66,8 @@ else:
 if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
     sys.stdout = open(os.devnull, 'w')
 
-def save_house(r):
+def save_house(r, rule):
+    save = []
     rooms_t = copy.deepcopy(r)
     for i in rooms_t:
         for j in rooms_t[i].copy():
@@ -79,11 +80,13 @@ def save_house(r):
                         del rooms_t[i][j][k]
                         continue
             print("saving:", i, j, rooms_t[i][j])
-
+    save.append(rooms_t)
+    print("\nsaving: ".join([str(i) for i in rule]))
+    save.append(rule)
     if not os.path.isdir("saved_houses"):
         os.mkdir("saved_houses")
     with open(os.path.join("saved_houses", datetime.datetime.now().strftime('%Y-%m-%d@%H-%M') +".tomo"), "w") as f:
-        f.write(json.dumps(rooms_t))
+        f.write(json.dumps(save))
 
 gameloop = True
 title_extras = False
@@ -774,7 +777,7 @@ def draw_canvas():
         update_to_do = False
         to_do, win = update_to_do_status(to_do)
         if win:
-            save_house(rooms)
+            save_house(rooms, rules)
             print("all rules satisfied")
     
     draw_img(to_do, (576-int(92*to_do_pos),0))

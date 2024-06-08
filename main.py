@@ -675,7 +675,7 @@ def create_tv_noise(trans = 255*2):
     img = np.random.rand(336, 596)
     img = Image.fromarray(np.uint8(img*255), 'L').convert("RGBA")
     img = np.array(img)
-    img[:,:,3] = np.uint8(np.clip((np.random.rand(336, 596)*trans), 0, 255))
+    img[:,:,3] = np.uint8(np.clip((np.random.rand(336, 596)*trans*2), 0, 255))
     img = Image.fromarray(img, 'RGBA')
     return img        
 

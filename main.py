@@ -1098,10 +1098,10 @@ def create_gallery(index = 0):
     global img_cache
     if not (f"saved_house_{index}" in img_cache):
         gallery = Image.new(mode="RGBA", size = canvas.size)
-        print(f"Creating Gallery {index}")
         house, fn = load_saved_house(index)
         if house == None:
             return gallery
+        print(f"Creating Gallery {index}")
         print(house)
         rooms, rules = house[0], house[1]
         draw_asset("back", dest= gallery)

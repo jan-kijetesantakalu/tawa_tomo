@@ -1,6 +1,9 @@
 #Edit files
 *.pdn
 
+#Savedata
+saved_houses/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

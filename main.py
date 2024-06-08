@@ -5,8 +5,7 @@ REPO = "jan-kijetesantakalu/decorumish"
 import tkinter as tk
 from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
-import glob, sys, os, time, requests
-import socket
+import glob, sys, os, time, requests, datetime, json, socket, copy
 import numpy as np
 
 mainloop = True
@@ -67,7 +66,24 @@ else:
 if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
     sys.stdout = open(os.devnull, 'w')
 
+def save_house(r):
+    rooms_t = copy.deepcopy(r)
+    for i in rooms_t:
+        for j in rooms_t[i].copy():
+            if j not in ["colour", "top", "left"] + TYPES:
+                del rooms_t[i][j]
+                continue
+            if hasattr(rooms_t[i][j], '__iter__') and type(rooms_t[i][j]) != str:
+                for k in rooms_t[i][j].copy():
+                    if k not in ["colour", "style"]:
+                        del rooms_t[i][j][k]
+                        continue
+            print("saving:", i, j, rooms_t[i][j])
 
+    if not os.path.isdir("saved_houses"):
+        os.mkdir("saved_houses")
+    with open(os.path.join("saved_houses", datetime.datetime.now().strftime('%Y-%m-%d@%H-%M') +".tomo"), "w") as f:
+        f.write(json.dumps(rooms_t))
 
 gameloop = True
 title_extras = False
@@ -191,9 +207,9 @@ rooms = {"bathroom": {}, "bedroom": {}, "kitchen":{}, "lounge": {}} #Contains th
 rooms["bathroom"] = {
         "colour": choice(COLOURS), 
                     
-        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":51, "ypos":95}, 
-        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":183, "ypos":67},
-        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":103, "ypos":123},
+        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "xpos":51, "ypos":95}, 
+        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "xpos":183, "ypos":67},
+        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "xpos":103, "ypos":123},
         
         "top": True,
         "left": True,
@@ -206,9 +222,9 @@ rooms["bathroom"] = {
 rooms["bedroom"]  = {
        "colour": choice(COLOURS), 
         
-        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 179, "ypos": 67}, 
-        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 115, "ypos": 107},
-        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 77, "ypos": 95},
+        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 179, "ypos": 67}, 
+        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 115, "ypos": 107},
+        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 77, "ypos": 95},
                     
         "top": True,
         "left": False,
@@ -221,9 +237,9 @@ rooms["bedroom"]  = {
 rooms["kitchen"]  = {
         "colour": choice(COLOURS), 
                      
-        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 71, "ypos": 59}, 
-        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 39, "ypos": 86},
-        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 143, "ypos": 86},
+        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 71, "ypos": 59}, 
+        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 39, "ypos": 86},
+        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 143, "ypos": 86},
                     
         "top": False,
         "left": False,
@@ -236,9 +252,9 @@ rooms["kitchen"]  = {
 rooms["lounge"]  = {
         "colour": choice(COLOURS), 
         
-        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 139, "ypos": 63}, 
-        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 183, "ypos": 123},
-        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 87, "ypos": 123},
+        "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 139, "ypos": 63}, 
+        "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 183, "ypos": 123},
+        "tat": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 87, "ypos": 123},
                     
         "top": False,
         "left": True,
@@ -758,6 +774,7 @@ def draw_canvas():
         update_to_do = False
         to_do, win = update_to_do_status(to_do)
         if win:
+            save_house(rooms)
             print("all rules satisfied")
     
     draw_img(to_do, (576-int(92*to_do_pos),0))
@@ -1134,9 +1151,9 @@ try:
         rooms["bathroom"] = {
                 "colour": choice(COLOURS), 
                             
-                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":51, "ypos":95}, 
-                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":183, "ypos":67},
-                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos":103, "ypos":123},
+                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "xpos":51, "ypos":95}, 
+                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "xpos":183, "ypos":67},
+                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "xpos":103, "ypos":123},
                 
                 "top": True,
                 "left": True,
@@ -1149,9 +1166,9 @@ try:
         rooms["bedroom"]  = {
             "colour": choice(COLOURS), 
                 
-                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 179, "ypos": 67}, 
-                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 115, "ypos": 107},
-                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 77, "ypos": 95},
+                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 179, "ypos": 67}, 
+                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 115, "ypos": 107},
+                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 77, "ypos": 95},
                             
                 "top": True,
                 "left": False,
@@ -1164,9 +1181,9 @@ try:
         rooms["kitchen"]  = {
                 "colour": choice(COLOURS), 
                             
-                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 71, "ypos": 59}, 
-                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 39, "ypos": 86},
-                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 143, "ypos": 86},
+                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 71, "ypos": 59}, 
+                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 39, "ypos": 86},
+                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 143, "ypos": 86},
                             
                 "top": False,
                 "left": False,
@@ -1179,9 +1196,9 @@ try:
         rooms["lounge"]  = {
                 "colour": choice(COLOURS), 
                 
-                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 139, "ypos": 63}, 
-                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 183, "ypos": 123},
-                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "label": None, "xpos": 87, "ypos": 123},
+                "hanging": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 139, "ypos": 63}, 
+                "lamp": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 183, "ypos": 123},
+                "tat": {"colour": choice(COLOURS), "style": None, "img": None, "xpos": 87, "ypos": 123},
                             
                 "top": False,
                 "left": True,

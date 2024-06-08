@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise #, SCALE
 
 REPO = "jan-kijetesantakalu/decorumish"
 
@@ -564,7 +564,7 @@ def hide_info(e=None):
     info_pos = max(info_pos, 0)
 
 def handle_keypress_title(e=None):
-    global title_loop, title_extras
+    global title_loop, title_extras, noise, ramp_noise
 
     if not title_extras:
         if e.keysym.lower() == "a":
@@ -581,7 +581,7 @@ def handle_keypress_title(e=None):
 
         elif e.keysym.lower() == "d":
             if info_pos == 0:
-                title_extras = True
+                ramp_noise = True
             elif info_pos > 0.05:
                 hide_info(e)
 
@@ -600,7 +600,7 @@ def handle_keypress_title(e=None):
             pass
 
         elif e.keysym.lower() == "f":
-            title_extras = False
+            ramp_noise = True
 
 def create_to_do():
     #draw to do list
@@ -672,8 +672,6 @@ def draw_rooms(rooms):
             draw_object(room, rooms, obj)
 
 def create_tv_noise(trans = 255*2):
-    if trans == 0:
-        return Image.new(mode = "RGBA")
     img = np.random.rand(336, 596)
     img = Image.fromarray(np.uint8(img*255), 'L').convert("RGBA")
     img = np.array(img)
@@ -817,7 +815,6 @@ def hide_to_do(e=None):
             # if event not defined
             pass
         to_do_after_id = root.after(1, hide_to_do)
-
 
 def show_to_do(e=None):
     global to_do_pos, to_do_after_id    
@@ -1075,6 +1072,8 @@ try:
         # title
         title_loop = True
         title_extras = False
+        noise = 0
+        ramp_noise = False
         while title_loop and mainloop:
             frame_start = time.time()
             root.update_idletasks()         
@@ -1086,7 +1085,19 @@ try:
                 draw_asset("title_extras")
             draw_img(to_do, (576-int(92*to_do_pos),0))
             draw_asset("info_menu", (0, int(360*(1-info_pos))))
-            draw_img(create_tv_noise())
+
+            noise = np.clip(noise, 0, 255)
+            if ramp_noise:
+                    noise += (abs(255-noise)**0.5)*2
+                    if abs(noise - 255) < 1:
+                        ramp_noise = False
+                        title_extras = not title_extras
+            else:
+                noise -= ((abs(noise))**0.5)*2
+            
+            if noise > 0:
+                draw_img(create_tv_noise(noise))
+                     
             finalise_canvas()
             update_count += 1
             print("FPS", round(1/(time.time() - frame_start), 2), end = "\r")

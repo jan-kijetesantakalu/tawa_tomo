@@ -1,6 +1,6 @@
 global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx #, SCALE
 
-REPO = "jan-kijetesantakalu/decorumish"
+REPO = "jan-kijetesantakalu/tawa_tomo"
 
 import tkinter as tk
 from random import randint, choice

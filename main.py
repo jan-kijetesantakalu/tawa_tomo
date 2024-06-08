@@ -1088,32 +1088,32 @@ def load_saved_house(index = 0):
     houses = glob.glob(os.path.join("saved_houses", "*.tomo"))
     if len(houses) == 0:
         return None, None
-    print("found saves", houses)
+    #print("found saves", houses)
     if index > len(houses)  or index < 0 and len(houses) > 0:
         index %= len(houses)
-    print(houses[index])
+    #print(houses[index])
     return json.load(open(houses[index])), os.path.split(houses[index])[-1].split(".")[0]
 
 def create_gallery(index = 0):
     global img_cache
-    if not (f"saved_house_{index}" in img_cache):
-        gallery = Image.new(mode="RGBA", size = canvas.size)
-        house, fn = load_saved_house(index)
-        if house == None:
-            return gallery
-        print(f"Creating Gallery {index}")
-        print(house)
+    house, fn = load_saved_house(index)
+    if house == None:
+        return open_asset("gallery_empty")
+
+    if not (fn in img_cache):
+        print(f"Creating Gallery {index}","\n", house, "\n", fn)
+        gallery = Image.new(mode="RGBA", size=canvas.size)
         rooms, rules = house[0], house[1]
-        draw_asset("back", dest= gallery)
+        draw_asset("back", dest=gallery)
         draw_rooms(rooms, blank = False, dest = gallery)
         draw_asset("gallery", dest = gallery)
         font = ImageFont.truetype("assets/pixel_font.ttf", 16)
         imgdraw = ImageDraw.Draw(gallery, "RGBA")
         imgdraw.fontmode = "1" 
         imgdraw.text((588,20),f'''{fn}''', font=font, anchor="rb", fill=(140,20,20,255))
-        img_cache[f"saved_house_{index}"] = gallery
+        img_cache[fn] = gallery
 
-    return img_cache[f"saved_house_{index}"]
+    return img_cache[fn]
 
 to_do_pos = 15.8
 

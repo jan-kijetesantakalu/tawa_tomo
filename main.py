@@ -586,7 +586,7 @@ def hide_info(e=None):
     info_pos = max(info_pos, 0)
 
 def handle_keypress_title(e=None):
-    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx
+    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos
 
     if not title_extras:
         if e.keysym.lower() == "a":
@@ -619,7 +619,8 @@ def handle_keypress_title(e=None):
             pass
 
         elif e.keysym.lower() == "d":
-            ramp_noise = True
+            if gallery_pos < 16:
+                ramp_noise = True
         
         elif e.keysym.lower() == "f":
             pass

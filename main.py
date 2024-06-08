@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery #, SCALE
 
 REPO = "jan-kijetesantakalu/decorumish"
 
@@ -76,10 +76,11 @@ def save_house(r, rule):
                 continue
             if hasattr(rooms_t[i][j], '__iter__') and type(rooms_t[i][j]) != str:
                 for k in rooms_t[i][j].copy():
-                    if k not in ["colour", "style"]:
+                    if k not in ["colour", "style", "xpos", "ypos"]:
                         del rooms_t[i][j][k]
                         continue
             print("saving:", i, j, rooms_t[i][j])
+
     save.append(rooms_t)
     print("\nsaving: ".join([str(i) for i in rule]))
     save.append(rule)
@@ -583,7 +584,7 @@ def hide_info(e=None):
     info_pos = max(info_pos, 0)
 
 def handle_keypress_title(e=None):
-    global title_loop, title_extras, noise, ramp_noise
+    global title_loop, title_extras, noise, ramp_noise, gallery
 
     if not title_extras:
         if e.keysym.lower() == "a":
@@ -610,7 +611,7 @@ def handle_keypress_title(e=None):
                 exit_loop()
     else:
         if e.keysym.lower() == "a":
-            pass
+            gallery = not gallery
 
         elif e.keysym.lower() == "s":
             pass
@@ -627,12 +628,12 @@ def create_to_do():
 
     draw_asset("to_do_stuff", (11,20), td)
 
-    n_smileys = len(glob.glob("assets/smileys/*.png"))
+    n_smileys = len(glob.glob(os.path.join("assets", "smileys", "*.png")))
     squiggle_y = 38
 
     drawn_wall_label = False
     
-    squiggles = [x for x in range(1,len(glob.glob("assets/squiggles/*.png"))+1)]
+    squiggles = [x for x in range(1,len(glob.glob(os.path.join("assets", "squiggles", "*.png")))+1)]
 
     for rule in rules: 
         if not rule["obj"] and not drawn_wall_label:
@@ -641,7 +642,7 @@ def create_to_do():
             squiggle_y += 18
         
         if len(squiggles) == 0:
-            squiggles = [x for x in range(1,len(glob.glob("assets/squiggles/*.png"))+1)]
+            squiggles = [x for x in range(1,len(glob.glob(os.path.join("assets", "squiggles", "*.png")))+1)]
         
         squig = f"squiggles/squiggle_{squiggles.pop(randint(0, len(squiggles)-1))}"
 
@@ -655,17 +656,18 @@ def create_to_do():
 
 #gameloop SCREEN
 
-def draw_object(room, rooms, obj_type):
+def draw_object(room, rooms, obj_type, blank= True, dest=canvas):
     #Open object or placeholder
     if rooms[room][obj_type]["style"] != None:
         rooms[room][obj_type]["img"] = open_asset(os.path.join(f'{room}/{obj_type}', f'{rooms[room][obj_type]["style"]}', f'{room}_{rooms[room][obj_type]["style"]}_{rooms[room][obj_type]["colour"]}_{obj_type}'))
 
-    else:
+    elif blank:
         rooms[room][obj_type]["img"] = open_asset("blank")
-    
-    draw_img(rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0]+1, rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]+1))
+    else:
+        return
+    draw_img(rooms[room][obj_type]["img"], (rooms[room][obj_type]["xpos"]+rooms[room]["xpos"]-rooms[room][obj_type]["img"].size[0]+1, rooms[room][obj_type]["ypos"]+rooms[room]["ypos"]-rooms[room][obj_type]["img"].size[1]+1), dest=dest)
 
-def draw_rooms(rooms):
+def draw_rooms(rooms, blank = True, dest = canvas):
     for room in rooms.keys():
         #Open room (or use placeholder):
         rooms[room]["img"]= open_asset(os.path.join(f'{room}', 'room', f'{room}_{rooms[room]["colour"]}'))
@@ -681,14 +683,14 @@ def draw_rooms(rooms):
             ypos += 128
         
         #Paste onto canvas (With transparency)
-        draw_img(rooms[room]["img"], (xpos, ypos))
+        draw_img(rooms[room]["img"], (xpos, ypos), dest)
 
         rooms[room]["xpos"] = xpos
         rooms[room]["ypos"] = ypos
 
         #Create objects
         for obj in TYPES:
-            draw_object(room, rooms, obj)
+            draw_object(room, rooms, obj, blank, dest)
 
 def create_tv_noise(trans = 255*2):
     img = np.random.rand(336, 596)
@@ -1063,6 +1065,31 @@ def handle_keypress(e):
             else:
                 cursor_obj["style"] = "unusual"
 
+def load_saved_house(index = 0):
+    houses = glob.glob(os.path.join("saved_houses", "*.tomo"))
+    if len(houses) == 0:
+        return None
+    print("found saves", houses)
+    if index > len(houses) -1:
+        index %= len(houses)-1
+    print(houses[index])
+    return json.load(open(houses[index]))
+
+def create_gallery(index = 0):
+    global img_cache
+    gallery = Image.new(mode="RGBA", size = canvas.size)
+    if not (f"saved_house_{index}" in img_cache):
+        house = load_saved_house(index)
+        if house == None:
+            return gallery
+        print(house)
+        rooms, rules = house[0], house[1]
+        draw_asset("back", dest= gallery)
+        draw_rooms(rooms, blank = False, dest = gallery)
+        draw_asset("gallery", dest = gallery)
+        img_cache[f"saved_house_{index}"] = gallery
+    return img_cache[f"saved_house_{index}"]
+
 to_do_pos = 15.8
 
 try:
@@ -1094,6 +1121,8 @@ try:
         title_extras = False
         noise = 0
         ramp_noise = False
+        gallery = False
+        gallery_pos = 0
         while title_loop and mainloop:
             frame_start = time.time()
             root.update_idletasks()         
@@ -1117,6 +1146,13 @@ try:
             
             if noise > 0:
                 draw_img(create_tv_noise(noise))
+            
+            if gallery and gallery_pos < 336:
+                gallery_pos += ((336-gallery_pos)**0.5)*2
+            elif not gallery and gallery_pos > 0:
+                gallery_pos -= ((gallery_pos)**0.5)*2
+
+            draw_img(create_gallery(), (0, int(gallery_pos-336)))
                      
             finalise_canvas()
             update_count += 1

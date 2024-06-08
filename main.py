@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx #, SCALE
 
 REPO = "jan-kijetesantakalu/decorumish"
 
@@ -454,7 +454,9 @@ def create_sleep_overlay():
     sleep_rec = Image.new("RGBA", canvas.size)
     ImageDraw.Draw(sleep_rec, "RGBA").rectangle([(0,0),(596,336)], fill=(0,0,0,int(-(0.08*(sleep_time*(100/5))-4)**4+255)))
     font = ImageFont.truetype("assets/pixel_font.ttf", 48)
-    ImageDraw.Draw(sleep_rec, "RGBA").text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_time*(100/5))-4)**4+255)))
+    imgdraw = ImageDraw.Draw(sleep_rec, "RGBA")
+    imgdraw.fontmode = "1" 
+    imgdraw.text((298,168),f'''DAY {max(days,1)}''', font=font, anchor="mb", fill=(255,255,255,int(-(0.08*(sleep_time*(100/5))-4)**4+255)))
     return sleep_rec
 
 
@@ -584,7 +586,7 @@ def hide_info(e=None):
     info_pos = max(info_pos, 0)
 
 def handle_keypress_title(e=None):
-    global title_loop, title_extras, noise, ramp_noise, gallery
+    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx
 
     if not title_extras:
         if e.keysym.lower() == "a":
@@ -621,6 +623,22 @@ def handle_keypress_title(e=None):
 
         elif e.keysym.lower() == "f":
             ramp_noise = True
+
+        elif gallery and e.keysym.lower() == "j":
+            gallery_idx-=1
+            houses = glob.glob(os.path.join("saved_houses", "*.tomo"))
+    
+            if len(houses) > 0 and gallery_idx > len(houses) -1:
+                gallery_idx %= len(houses)-1
+
+        elif gallery and e.keysym.lower() == "l":
+            gallery_idx+=1
+            houses = glob.glob(os.path.join("saved_houses", "*.tomo"))
+    
+            if len(houses) > 0 and gallery_idx > len(houses) -1:
+                gallery_idx %= len(houses)-1
+        
+        
 
 def create_to_do():
     #draw to do list
@@ -1073,13 +1091,15 @@ def load_saved_house(index = 0):
     if index > len(houses) -1:
         index %= len(houses)-1
     print(houses[index])
-    return json.load(open(houses[index]))
+    return json.load(open(houses[index])), os.path.split(houses[index])[-1].split(".")[0]
 
 def create_gallery(index = 0):
     global img_cache
+
     gallery = Image.new(mode="RGBA", size = canvas.size)
     if not (f"saved_house_{index}" in img_cache):
-        house = load_saved_house(index)
+        print(f"Creating Gallery {index}")
+        house, fn = load_saved_house(index)
         if house == None:
             return gallery
         print(house)
@@ -1087,7 +1107,12 @@ def create_gallery(index = 0):
         draw_asset("back", dest= gallery)
         draw_rooms(rooms, blank = False, dest = gallery)
         draw_asset("gallery", dest = gallery)
+        font = ImageFont.truetype("assets/pixel_font.ttf", 16)
+        imgdraw = ImageDraw.Draw(gallery, "RGBA")
+        imgdraw.fontmode = "1" 
+        imgdraw.text((588,20),f'''{fn}''', font=font, anchor="rb", fill=(140,20,20,255))
         img_cache[f"saved_house_{index}"] = gallery
+
     return img_cache[f"saved_house_{index}"]
 
 to_do_pos = 15.8
@@ -1120,6 +1145,7 @@ try:
         title_loop = True
         title_extras = False
         noise = 0
+        gallery_idx = 0
         ramp_noise = False
         gallery = False
         gallery_pos = 0
@@ -1152,7 +1178,7 @@ try:
             elif not gallery and gallery_pos > 0:
                 gallery_pos -= ((gallery_pos)**0.5)*2
 
-            draw_img(create_gallery(), (0, int(gallery_pos-336)))
+            draw_img(create_gallery(gallery_idx), (0, int(gallery_pos-336)))
                      
             finalise_canvas()
             update_count += 1

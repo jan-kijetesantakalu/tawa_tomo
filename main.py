@@ -1163,12 +1163,12 @@ try:
 
             noise = np.clip(noise, 0, 255)
             if ramp_noise:
-                    noise += (abs(255-noise)**0.5)*2
+                    noise += (abs(255-noise)**0.5)*3
                     if abs(noise - 255) < 1:
                         ramp_noise = False
                         title_extras = not title_extras
             else:
-                noise -= ((abs(noise))**0.5)*2
+                noise -= ((abs(noise))**0.5)*3
             
             if noise > 0:
                 draw_img(create_tv_noise(noise))

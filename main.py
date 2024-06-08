@@ -1095,9 +1095,8 @@ def load_saved_house(index = 0):
 
 def create_gallery(index = 0):
     global img_cache
-
-    gallery = Image.new(mode="RGBA", size = canvas.size)
     if not (f"saved_house_{index}" in img_cache):
+        gallery = Image.new(mode="RGBA", size = canvas.size)
         print(f"Creating Gallery {index}")
         house, fn = load_saved_house(index)
         if house == None:

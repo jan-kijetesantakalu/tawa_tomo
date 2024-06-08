@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras #, SCALE
 
 REPO = "jan-kijetesantakalu/decorumish"
 
@@ -54,7 +54,7 @@ if os.path.isfile(".git/HEAD"):
         else:  
             print(f"Can't check update status, Local version: {VERSION}.")
     except Exception as e:
-            print(f"Can't acess git repo {REPO}, Local version: {VERSION} {e}")
+            print(f"{e}\nCan't acess git repo {REPO}, Local version: {VERSION}")
 
 else:
     print(f"Not running in git repository.\nCan't check update status or version.")
@@ -68,6 +68,7 @@ if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
 
 
 gameloop = True
+title_extras = False
 setup_loop = True
 setup_scroll = -336
 
@@ -561,30 +562,34 @@ def hide_info(e=None):
     info_pos = max(info_pos, 0)
 
 def handle_keypress_title(e=None):
-    global title_loop
+    global title_loop, title_extras
 
-    if e.keysym.lower() == "a":
-        if info_pos < 0.2:
-            title_loop = False
-        else:
+    if not title_extras:
+        if e.keysym.lower() == "a":
+            if info_pos < 0.2:
+                title_loop = False
+            else:
+                hide_info(e)
+
+        elif e.keysym.lower() == "s":
+            if info_pos < 0.2:
+                show_info(e)
+            else:
+                hide_info(e)
+
+        elif e.keysym.lower() == "d":
+            if info_pos < 0.2:
+                title_extras = True
+            else:
+                hide_info(e)
+
+        elif e.keysym.lower() == "f":
             hide_info(e)
-
-    elif e.keysym.lower() == "s":
-        if info_pos < 0.2:
-            show_info(e)
-        else:
-            hide_info(e)
-
-    elif e.keysym.lower() == "d":
-        if info_pos < 0.2:
-            pass
-        else:
-            hide_info(e)
-
-    elif e.keysym.lower() == "f":
-        hide_info(e)
-        if info_pos < 0.2: 
-            exit_loop()
+            if info_pos < 0.2: 
+                exit_loop()
+    else:
+        if e.keysym.lower() == "f":
+            title_extras = False
 
 def create_to_do():
     #draw to do list
@@ -1050,13 +1055,16 @@ try:
 
         # title
         title_loop = True
-
+        title_extras = False
         while title_loop and mainloop:
             frame_start = time.time()
             root.update_idletasks()         
             root.update()
             draw_asset("back")
-            draw_asset("title")
+            if not title_extras:
+                draw_asset("title")
+            else:
+                draw_asset("title_extras")
             draw_img(to_do, (576-int(92*to_do_pos),0))
             draw_asset("info_menu", (0, int(360*(1-info_pos))))
             finalise_canvas()

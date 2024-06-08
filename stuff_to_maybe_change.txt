@@ -1,10 +1,11 @@
-Background
-- foreground
-
 Title screen
 - controls (+ rule types) book
-- lore (Kijetesantakalu make font?)
+- lore
+	- Devlog
+	- Lore
+	- Gallery
 
 Exrta rule types
 
-'T' Info menu
+'T' + 'I' Info Menu
+Left Page Info Menu

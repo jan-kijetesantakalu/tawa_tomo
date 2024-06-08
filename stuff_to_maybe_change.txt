@@ -1,6 +1,10 @@
 Title screen
 - controls (+ rule types) book
+<<<<<<< Updated upstream
 - lore
+=======
+- lore (Kijetesantakalu make font?)
+>>>>>>> Stashed changes
 	- Devlog
 	- Lore
 	- Gallery

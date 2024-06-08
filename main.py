@@ -619,10 +619,11 @@ def handle_keypress_title(e=None):
             pass
 
         elif e.keysym.lower() == "d":
+            ramp_noise = True
+        
+        elif e.keysym.lower() == "f":
             pass
 
-        elif e.keysym.lower() == "f":
-            ramp_noise = True
 
         elif gallery and e.keysym.lower() == "j":
             gallery_idx-=1

@@ -33,6 +33,10 @@ def internet(host="api.github.com", port=443, timeout=3):
         print("Network not available:",ex)
         return False
 
+if ":" not in SERVER:
+    print("Server format: http[s]://hostname.tld:PORT/root")
+    exit()
+
 SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
 
 print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
@@ -1177,7 +1181,7 @@ def create_gallery(index = 0):
         try:
             house, fn = load_online_house(index)
             if house == None or 'err' in house:
-                return open_asset("gallery_server_error")
+                return open_asset("gallery_server_empty")
 
         except Exception as e:
             print("Invalid response:", e)

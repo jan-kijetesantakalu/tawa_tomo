@@ -39,7 +39,7 @@ if ":" not in SERVER:
 
 SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
 
-print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
+print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status", "up" if SERVER_UP else "down")
 
 if not os.path.isdir("assets"):
     print("./assets not found. Are you running from the correct location?")

@@ -1195,10 +1195,11 @@ def create_gallery(index = 0):
         draw_asset("back", dest=gallery)
         draw_rooms(rooms, blank = False, dest = gallery)
         draw_asset("gallery_local" if not gallery_cloud else "gallery_server", dest = gallery)
-        font = ImageFont.truetype("assets/pixel_font.ttf", 16)
-        imgdraw = ImageDraw.Draw(gallery, "RGBA")
-        imgdraw.fontmode = "1" 
-        imgdraw.text((588,20),f'''{fn}''', font=font, anchor="rb", fill=(140,20,20,255))
+        if not gallery_cloud:
+            font = ImageFont.truetype("assets/pixel_font.ttf", 16)
+            imgdraw = ImageDraw.Draw(gallery, "RGBA")
+            imgdraw.fontmode = "1" 
+            imgdraw.text((588,20),f'''{fn}''', font=font, anchor="rb", fill=(140,20,20,255))
         img_cache[fn] = gallery
 
     return img_cache[fn]

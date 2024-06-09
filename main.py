@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER, SERVER_UP, server_cache #, SCALE
 
 REPO = "jan-kijetesantakalu/tawa_tomo"
 SERVER = 'http://many-wholesome.co.uk:5001'
@@ -15,9 +15,12 @@ if "--server" in sys.argv:
     except:
         print("No argument provided for --server")
 
+
 print(f"using remote server: {SERVER}")
 
 mainloop = True
+
+
 
 
 #https://stackoverflow.com/questions/3764291/how-can-i-see-if-theres-an-available-and-active-network-connection-in-python
@@ -29,7 +32,11 @@ def internet(host="api.github.com", port=443, timeout=3):
     except Exception as ex:
         print("Network not available:",ex)
         return False
-    
+
+SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
+
+print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
+
 if not os.path.isdir("assets"):
     print("./assets not found. Are you running from the correct location?")
     exit()
@@ -103,6 +110,7 @@ gameloop = True
 title_extras = False
 setup_loop = True
 setup_scroll = -336
+server_cache = {}
 
 img_cache = {}
 
@@ -596,7 +604,7 @@ def hide_info(e=None):
     info_pos = max(info_pos, 0)
 
 def handle_keypress_title(e=None):
-    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos, gallery_cloud
+    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos, gallery_cloud, server_cache
 
     if not title_extras:
         if e.keysym.lower() == "a":
@@ -624,7 +632,12 @@ def handle_keypress_title(e=None):
     else:
         if e.keysym.lower() == "a":
             gallery = not gallery
+            server_cache = {}
+            
+            SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
 
+            print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
+        
         elif e.keysym.lower() == "s":
             pass
 
@@ -634,6 +647,9 @@ def handle_keypress_title(e=None):
         
         elif e.keysym.lower() == "f":
             pass
+
+        elif gallery and e.keysym.lower() == "i":
+            submit_house()
 
         elif gallery and e.keysym.lower() == "j":
             gallery_idx-=1
@@ -809,7 +825,6 @@ def draw_canvas():
         to_do, win = update_to_do_status(to_do)
         if win:
             save_house(rooms, rules)
-            submit_house(rooms, rules)
             print("all rules satisfied")
     
     draw_img(to_do, (576-int(92*to_do_pos),0))
@@ -1100,14 +1115,25 @@ def load_saved_house(index = 0):
     if len(houses) == 0:
         return None, None
     #print("found saves", houses)
-    if index > len(houses)  or index < 0 and len(houses) > 0:
-        index %= len(houses)
+    index %= len(houses)
     #print(houses[index])
     return json.load(open(houses[index])), os.path.split(houses[index])[-1].split(".")[0]
 
 
-def submit_house(r, rule):
-    global SERVER
+def submit_house():
+    global SERVER, gallery_idx, server_cache
+    server_cache = {}
+
+    SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
+
+    print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
+
+    if not SERVER_UP:
+        return
+
+    dat, fn = load_saved_house(gallery_idx)
+
+    r, rule = dat[0], dat[1]
 
     save = []
     rooms_t = copy.deepcopy(r)
@@ -1131,17 +1157,29 @@ def submit_house(r, rule):
 
 
 def load_online_house(index=0):
-    return requests.get(SERVER+f"/get_house?index={index}").json(), ""
+    global server_cache, SERVER_UP
+    if not SERVER_UP:
+        return None, None
+    if not (index  in server_cache):
+        server_cache[index] = requests.get(SERVER+f"/get_house?index={index}").json()
+    return server_cache[index], ""
 
 def create_gallery(index = 0):
-    global img_cache, gallery_cloud
+    global img_cache, gallery_cloud, SERVER_UP
     if not gallery_cloud:
         house, fn = load_saved_house(index)
         if house == None:
             return open_asset("gallery_empty")
     else:
-        house, fn = load_online_house(index)
+        try:
+            house, fn = load_online_house(index)
+            if house == None or 'err' in house:
+                return open_asset("gallery_server_error")
 
+        except Exception as e:
+            print("Invalid response:", e)
+            SERVER_UP = False
+            return open_asset("gallery_server_error")
 
     if not (fn in img_cache):
         print(f"Creating Gallery {index}","\n", house, "\n", fn)
@@ -1191,6 +1229,8 @@ try:
         gallery_idx = 0
         ramp_noise = False
         gallery = False
+        server_cache = {}
+
         gallery_pos = 0
         gallery_cloud = False
         while title_loop and mainloop:

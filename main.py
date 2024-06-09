@@ -1,12 +1,21 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud #, SCALE
 
 REPO = "jan-kijetesantakalu/tawa_tomo"
+SERVER = 'https://many-wholesome.co.uk/tawa_tomo/'
 
 import tkinter as tk
 from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import glob, sys, os, time, requests, datetime, json, socket, copy
 import numpy as np
+
+if "--server" in sys.argv:
+    try:
+        SERVER = sys.argv[sys.argv.index("--server") + 1]
+    except:
+        print("No argument provided for --server")
+
+print(f"using remote server: {SERVER}")
 
 mainloop = True
 
@@ -63,8 +72,9 @@ else:
 
 
 #Disable printing if not in debug mode
-if len(sys.argv) <= 1 or not "debug" in sys.argv[1]:
+if len(sys.argv) <= 1 or not "--debug" in sys.argv:
     sys.stdout = open(os.devnull, 'w')
+
 
 def save_house(r, rule):
     save = []
@@ -586,7 +596,7 @@ def hide_info(e=None):
     info_pos = max(info_pos, 0)
 
 def handle_keypress_title(e=None):
-    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos
+    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos, gallery_cloud
 
     if not title_extras:
         if e.keysym.lower() == "a":
@@ -639,6 +649,14 @@ def handle_keypress_title(e=None):
     
             if len(houses) > 0:
                 gallery_idx %= len(houses)
+        
+        elif gallery and e.keysym.lower() == "up":
+            gallery_cloud = True
+        
+        elif gallery and e.keysym.lower() == "down":
+            gallery_cloud = False
+        
+        
         
         
 
@@ -1095,11 +1113,18 @@ def load_saved_house(index = 0):
     #print(houses[index])
     return json.load(open(houses[index])), os.path.split(houses[index])[-1].split(".")[0]
 
+def load_online_house(index = 0):
+    
+    return None, None
+
 def create_gallery(index = 0):
-    global img_cache
-    house, fn = load_saved_house(index)
-    if house == None:
-        return open_asset("gallery_empty")
+    global img_cache, gallery_cloud
+    if not gallery_cloud:
+        house, fn = load_saved_house(index)
+        if house == None:
+            return open_asset("gallery_empty")
+    else:
+        house, fn = load_online_house()
 
     if not (fn in img_cache):
         print(f"Creating Gallery {index}","\n", house, "\n", fn)
@@ -1107,7 +1132,7 @@ def create_gallery(index = 0):
         rooms, rules = house[0], house[1]
         draw_asset("back", dest=gallery)
         draw_rooms(rooms, blank = False, dest = gallery)
-        draw_asset("gallery", dest = gallery)
+        draw_asset("gallery_local" if not gallery_cloud else "gallery_server", dest = gallery)
         font = ImageFont.truetype("assets/pixel_font.ttf", 16)
         imgdraw = ImageDraw.Draw(gallery, "RGBA")
         imgdraw.fontmode = "1" 
@@ -1150,6 +1175,7 @@ try:
         ramp_noise = False
         gallery = False
         gallery_pos = 0
+        gallery_cloud = False
         while title_loop and mainloop:
             frame_start = time.time()
             root.update_idletasks()         

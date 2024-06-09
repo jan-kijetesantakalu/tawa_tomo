@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER #, SCALE
 
 REPO = "jan-kijetesantakalu/tawa_tomo"
 SERVER = 'http://many-wholesome.co.uk:5001'
@@ -635,21 +635,12 @@ def handle_keypress_title(e=None):
         elif e.keysym.lower() == "f":
             pass
 
-
         elif gallery and e.keysym.lower() == "j":
             gallery_idx-=1
-            houses = glob.glob(os.path.join("saved_houses", "*.tomo"))
-    
-            if len(houses) > 0:
-                gallery_idx %= len(houses)
-
+       
         elif gallery and e.keysym.lower() == "l":
             gallery_idx+=1
-            houses = glob.glob(os.path.join("saved_houses", "*.tomo"))
-    
-            if len(houses) > 0:
-                gallery_idx %= len(houses)
-        
+          
         elif gallery and e.keysym.lower() == "up":
             gallery_cloud = True
         
@@ -818,6 +809,7 @@ def draw_canvas():
         to_do, win = update_to_do_status(to_do)
         if win:
             save_house(rooms, rules)
+            submit_house(rooms, rules)
             print("all rules satisfied")
     
     draw_img(to_do, (576-int(92*to_do_pos),0))
@@ -1113,9 +1105,33 @@ def load_saved_house(index = 0):
     #print(houses[index])
     return json.load(open(houses[index])), os.path.split(houses[index])[-1].split(".")[0]
 
-def load_online_house(index = 0):
-    
-    return None, None
+
+def submit_house(r, rule):
+    global SERVER
+
+    save = []
+    rooms_t = copy.deepcopy(r)
+    for i in rooms_t:
+        for j in rooms_t[i].copy():
+            if j not in ["colour", "top", "left"] + TYPES:
+                del rooms_t[i][j]
+                continue
+            if hasattr(rooms_t[i][j], '__iter__') and type(rooms_t[i][j]) != str:
+                for k in rooms_t[i][j].copy():
+                    if k not in ["colour", "style", "xpos", "ypos"]:
+                        del rooms_t[i][j][k]
+                        continue
+            print("saving:", i, j, rooms_t[i][j])
+
+    save.append(rooms_t)
+    print("\nsaving: ".join([str(i) for i in rule]))
+    save.append(rule)
+    x = requests.post(SERVER+"/submit_house", json=save)
+    print("sent request:", x.text)
+
+
+def load_online_house(index=0):
+    return requests.get(SERVER+f"/get_house?index={index}").json(), ""
 
 def create_gallery(index = 0):
     global img_cache, gallery_cloud
@@ -1124,7 +1140,8 @@ def create_gallery(index = 0):
         if house == None:
             return open_asset("gallery_empty")
     else:
-        house, fn = load_online_house()
+        house, fn = load_online_house(index)
+
 
     if not (fn in img_cache):
         print(f"Creating Gallery {index}","\n", house, "\n", fn)

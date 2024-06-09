@@ -604,7 +604,7 @@ def hide_info(e=None):
     info_pos = max(info_pos, 0)
 
 def handle_keypress_title(e=None):
-    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos, gallery_cloud, server_cache
+    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos, gallery_cloud, server_cache, SERVER_UP
 
     if not title_extras:
         if e.keysym.lower() == "a":
@@ -656,6 +656,7 @@ def handle_keypress_title(e=None):
           
         elif gallery and e.keysym.lower() == "up":
             gallery_cloud = True
+            server_cache = {}
             SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
 
             print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
@@ -663,6 +664,7 @@ def handle_keypress_title(e=None):
         
         elif gallery and e.keysym.lower() == "down":
             gallery_cloud = False
+            server_cache = {}
         
         
         
@@ -1122,7 +1124,7 @@ def load_saved_house(index = 0):
 
 
 def submit_house():
-    global SERVER, gallery_idx, server_cache
+    global SERVER, gallery_idx, server_cache, SERVER_UP
     server_cache = {}
 
     SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))

@@ -1180,9 +1180,12 @@ def create_gallery(index = 0):
     else:
         try:
             house, fn = load_online_house(index)
-            if house == None or 'err' in house:
+            if 'err' in house:
                 return open_asset("gallery_server_empty")
 
+            if house == None:
+                return open_asset("gallery_server_error")
+        
         except Exception as e:
             print("Invalid response:", e)
             SERVER_UP = False

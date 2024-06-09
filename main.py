@@ -659,12 +659,13 @@ def handle_keypress_title(e=None):
             gallery_idx+=1
           
         elif gallery and e.keysym.lower() == "up":
-            gallery_cloud = True
+            
             server_cache = {}
-            SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
+            if gallery_cloud == False:
+                SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
+                print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
 
-            print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
-
+            gallery_cloud = True
         
         elif gallery and e.keysym.lower() == "down":
             gallery_cloud = False

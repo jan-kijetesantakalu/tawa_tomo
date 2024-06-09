@@ -1169,7 +1169,7 @@ def load_online_house(index=0):
         return None, None
     if not (index  in server_cache):
         server_cache[index] = requests.get(SERVER+f"/get_house?index={index}").json()
-    return server_cache[index], hash(server_cache[index])
+    return server_cache[index], str(hash(str(server_cache[index])))
 
 def create_gallery(index = 0):
     global img_cache, gallery_cloud, SERVER_UP

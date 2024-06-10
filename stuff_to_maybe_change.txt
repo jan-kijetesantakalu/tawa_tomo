@@ -2,12 +2,12 @@ Title screen
 - controls (+ rule types) book
 - lore
 
+Win Screen
+
 Lore (Kijetesantakalu make font?)
 	- Devlog
 	- Lore
 	- Gallery
 
-Exrta rule types
-
-'T' + 'I' Info Menu
+Standardise Info Menu
 Left Page Info Menu

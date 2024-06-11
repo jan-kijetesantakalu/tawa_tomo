@@ -843,9 +843,17 @@ def draw_canvas():
     else:
         draw_asset(os.path.join("numbers", f"number_{str(days)[0]}"), (388, win_pos+263))
         draw_asset(os.path.join("numbers", f"number_{str(days)[1]}"), (398, win_pos+263))
-        
-    if win and sleep_time <= 0.5 and win_pos > 0:
-        win_pos = max(win_pos-24, 0)
+    
+    if win: 
+        preview = Image.new(mode = "RGBA", size = canvas.size)
+        draw_asset("back", dest=preview)
+        draw_rooms(rooms, blank=False, dest=preview)
+        preview = preview.resize((298, 168), Image.LANCZOS)
+        draw_img(preview, (4, win_pos+375))
+        draw_asset("win_paperclip", (0, win_pos+371))
+
+        if win and sleep_time <= 0.5 and win_pos > 0:
+            win_pos = max(win_pos-24, 0)
 
     draw_asset(os.path.join(f"sleep", f"sleep_{rooms['bedroom']['colour']}"), (0, -24+int(360*(1-sleep_pos))))
 
@@ -1026,7 +1034,7 @@ def handle_keypress(e):
             if win_pos + 24 <= 0:
                 win_pos+=24
         elif e.keysym.lower() == "k":
-            if win_pos - 24 >= -672:
+            if win_pos - 24 >= -297:
                 win_pos-=24
         elif e.keysym.lower() == 'down':
             show_win()

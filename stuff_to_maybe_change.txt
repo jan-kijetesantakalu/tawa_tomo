@@ -1,13 +1,14 @@
-Title screen
-- controls (+ rule types) book
-- lore
-
 Win Screen
 
-Lore (Kijetesantakalu make font?)
+Place Holders
+	- Devlog
+	- Lore
+
+Lore 
 	- Devlog
 	- Lore
 	- Gallery
 
-Standardise Info Menu
-Left Page Info Menu
+Info Menu
+	- Standardise 
+	- Left Page 

@@ -839,10 +839,10 @@ def draw_canvas():
     
     draw_asset("win_screen", (0, win_pos))
     if days < 10:
-        draw_asset(os.path.join("numbers", f"number_{days}"), (392, win_pos+263))
+        draw_asset(os.path.join("numbers", f"number_{days}"), (392, win_pos+208))
     else:
-        draw_asset(os.path.join("numbers", f"number_{str(days)[0]}"), (388, win_pos+263))
-        draw_asset(os.path.join("numbers", f"number_{str(days)[1]}"), (398, win_pos+263))
+        draw_asset(os.path.join("numbers", f"number_{str(days)[0]}"), (386, win_pos+208))
+        draw_asset(os.path.join("numbers", f"number_{str(days)[1]}"), (398, win_pos+209))
     
     if win: 
         preview = Image.new(mode = "RGBA", size = canvas.size)

@@ -635,7 +635,6 @@ def show_top_sneaky(e=None):
 
 def hide_top_sneaky(e=None):
     global top_sneaky_pos, top_sneaky_after_id
-    print("hide")
     if top_sneaky_pos > 0:
         top_sneaky_pos -= 0.03+(top_sneaky_pos/16)+(top_sneaky_pos/4)**2
         try:

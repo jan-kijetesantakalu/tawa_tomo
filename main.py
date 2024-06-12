@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER, SERVER_UP, server_cache #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER, SERVER_UP, server_cache, top_sneaky_pos, top_sneaky_after_id #, SCALE
 
 REPO = "jan-kijetesantakalu/tawa_tomo"
 SERVER = 'http://many-wholesome.co.uk:5001'
@@ -609,8 +609,6 @@ def show_info(e=None):
 def hide_info(e=None):
     global info_pos, info_after_id
     
-    show_to_do()
-
     if info_pos > 0:
         info_pos -= 0.03+(info_pos/16)+(info_pos/4)**2
         try:
@@ -621,8 +619,36 @@ def hide_info(e=None):
         info_after_id = root.after(1, hide_info)
     info_pos = max(info_pos, 0)
 
+def show_top_sneaky(e=None):
+    global top_sneaky_pos, top_sneaky_after_id
+    print("show", top_sneaky_pos, "\t\t\t\n")
+    if top_sneaky_pos < 1:
+        top_sneaky_pos += 0.03+abs((1-top_sneaky_pos)/16)+abs((1-top_sneaky_pos)/4)**2
+        try:
+            root.after_cancel(top_sneaky_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        top_sneaky_after_id = root.after(1, show_top_sneaky)
+    #top_sneaky_pos = min(info_pos, 1)
+
+
+def hide_top_sneaky(e=None):
+    global top_sneaky_pos, top_sneaky_after_id
+    print("hide")
+    if top_sneaky_pos > 0:
+        top_sneaky_pos -= 0.03+(top_sneaky_pos/16)+(top_sneaky_pos/4)**2
+        try:
+            root.after_cancel(top_sneaky_after_id)
+        except NameError:
+            # if event not defined
+            pass
+        top_sneaky_after_id = root.after(1, hide_top_sneaky)
+    #top_sneaky_pos = max(info_pos, 0)
+
+
 def handle_keypress_title(e=None):
-    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos, gallery_cloud, server_cache, SERVER_UP
+    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos, gallery_cloud, server_cache, SERVER_UP, top_sneaky_pos
 
     if not title_extras:
         if e.keysym.lower() == "a":
@@ -653,14 +679,18 @@ def handle_keypress_title(e=None):
             server_cache = {}
             
         
-        elif e.keysym.lower() == "s":
-            pass
+        elif e.keysym.lower() == "s" and not gallery:
+            if top_sneaky_pos < 0.05:
+                show_top_sneaky(e)
+            else:
+                hide_top_sneaky(e)
 
-        elif e.keysym.lower() == "d":
+
+        elif e.keysym.lower() == "d" and not gallery:
             if gallery_pos < 16:
                 ramp_noise = True
         
-        elif e.keysym.lower() == "f":
+        elif e.keysym.lower() == "f" and not gallery:
             pass
 
         elif gallery and e.keysym.lower() == "i":
@@ -1236,6 +1266,7 @@ def create_gallery(index = 0):
     return img_cache[fn]
 
 to_do_pos = 15.8
+top_sneaky_pos = 0 
 
 try:
     #SPLASH SCREEN
@@ -1281,8 +1312,12 @@ try:
                 draw_asset("title")
             else:
                 draw_asset("title_extras")
+            
             draw_img(to_do, (576-int(92*to_do_pos),0))
+            
             draw_asset("info_menu", (0, int(360*(1-info_pos))))
+           
+            draw_asset("top_sneaky", (0, abs(int(336*(1-top_sneaky_pos)))))
 
             noise = np.clip(noise, 0, 255)
             if ramp_noise:
@@ -1395,7 +1430,8 @@ try:
                 "xpos": None,
                 "ypos": None            
         }
-            
+
+        top_sneaky_pos = 0 
         setup_scroll = -336
 
 

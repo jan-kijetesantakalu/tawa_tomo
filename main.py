@@ -1,4 +1,4 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER, SERVER_UP, server_cache, top_sneaky_pos, top_sneaky_after_id #, SCALE
+global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, devlog, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER, SERVER_UP, server_cache, top_sneaky_pos, top_sneaky_after_id #, SCALE
 
 REPO = "jan-kijetesantakalu/tawa_tomo"
 SERVER = 'http://many-wholesome.co.uk:5001'
@@ -649,7 +649,7 @@ def hide_top_sneaky(e=None):
 
 
 def handle_keypress_title(e=None):
-    global title_loop, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_pos, gallery_cloud, server_cache, SERVER_UP, top_sneaky_pos
+    global title_loop, title_extras, noise, ramp_noise, devlog, gallery, gallery_idx, gallery_pos, gallery_cloud, server_cache, SERVER_UP, top_sneaky_pos
 
     if not title_extras:
         if e.keysym.lower() == "a":
@@ -675,24 +675,24 @@ def handle_keypress_title(e=None):
             if info_pos < 0.05: 
                 exit_loop()
     else:
-        if e.keysym.lower() == "a":
+        if e.keysym.lower() == "a" and not devlog:
             gallery = not gallery
             server_cache = {}
             
         
-        elif e.keysym.lower() == "s" and not gallery:
+        elif e.keysym.lower() == "s" and not gallery and not devlog:
             if top_sneaky_pos < 0.05:
                 show_top_sneaky(e)
             else:
                 hide_top_sneaky(e)
 
 
-        elif e.keysym.lower() == "d" and not gallery:
+        elif e.keysym.lower() == "d" and not gallery and not devlog:
             if gallery_pos < 16:
                 ramp_noise = True
         
         elif e.keysym.lower() == "f" and not gallery:
-            pass
+            devlog = not devlog
 
         elif gallery and e.keysym.lower() == "i":
             submit_house()
@@ -1300,6 +1300,7 @@ try:
         gallery_idx = 0
         ramp_noise = False
         gallery = False
+        devlog = False
         server_cache = {}
 
         gallery_pos = 0
@@ -1332,6 +1333,9 @@ try:
             if noise > 0:
                 draw_img(create_tv_noise(noise))
             
+            if devlog:
+                draw_asset("dev_log")
+
             if gallery and gallery_pos < 336:
                 gallery_pos += ((336-gallery_pos)**0.5)*2
             elif not gallery and gallery_pos > 0:

@@ -9,6 +9,10 @@ from PIL import Image, ImageTk, ImageDraw, ImageFont
 import glob, sys, os, time, requests, datetime, json, socket, copy
 import numpy as np
 
+if "-h" in sys.argv or "--help" in sys.argv:
+    print("Options:\n--server http[s]://hostname.tld:PORT/root | Specify remote server\n--noserver | disable internet features\n--help | -h | print this message\n\n")
+    exit()
+
 if "--server" in sys.argv:
     try:
         SERVER = sys.argv[sys.argv.index("--server") + 1]

@@ -621,7 +621,6 @@ def hide_info(e=None):
 
 def show_top_sneaky(e=None):
     global top_sneaky_pos, top_sneaky_after_id
-    print("show", top_sneaky_pos, "\t\t\t\n")
     if top_sneaky_pos < 1:
         top_sneaky_pos += 0.03+abs((1-top_sneaky_pos)/16)+abs((1-top_sneaky_pos)/4)**2
         try:
@@ -630,7 +629,8 @@ def show_top_sneaky(e=None):
             # if event not defined
             pass
         top_sneaky_after_id = root.after(1, show_top_sneaky)
-    #top_sneaky_pos = min(info_pos, 1)
+    if top_sneaky_pos > 1:
+        top_sneaky_pos = 1
 
 
 def hide_top_sneaky(e=None):
@@ -644,7 +644,8 @@ def hide_top_sneaky(e=None):
             # if event not defined
             pass
         top_sneaky_after_id = root.after(1, hide_top_sneaky)
-    #top_sneaky_pos = max(info_pos, 0)
+    if top_sneaky_pos < 0:
+        top_sneaky_pos = 0
 
 
 def handle_keypress_title(e=None):

@@ -12,3 +12,5 @@ Lore
 Info Menu
 	- Standardise 
 	- Left Page 
+
+Show rules in the gallery

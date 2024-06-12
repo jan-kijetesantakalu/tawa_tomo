@@ -15,6 +15,8 @@ if "--server" in sys.argv:
     except:
         print("No argument provided for --server")
 
+if "--noserver" in sys.argv:
+    SERVER = None
 
 print(f"using remote server: {SERVER}")
 
@@ -25,6 +27,10 @@ mainloop = True
 
 #https://stackoverflow.com/questions/3764291/how-can-i-see-if-theres-an-available-and-active-network-connection-in-python
 def internet(host="api.github.com", port=443, timeout=3):
+    global SERVER
+    if SERVER == None:
+        return False
+
     try:
         socket.setdefaulttimeout(timeout)
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
@@ -33,13 +39,17 @@ def internet(host="api.github.com", port=443, timeout=3):
         print("Network not available:",ex)
         return False
 
-if ":" not in SERVER:
+if SERVER != None and ":" not in SERVER:
     print("Server format: http[s]://hostname.tld:PORT/root")
     exit()
 
-SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
+if SERVER != None:
+    SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
+else:
+    SERVER_UP = False
 
-print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status", "up" if SERVER_UP else "down")
+if SERVER != None:
+    print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status", "up" if SERVER_UP else "down")
 
 if not os.path.isdir("assets"):
     print("./assets not found. Are you running from the correct location?")
@@ -662,8 +672,9 @@ def handle_keypress_title(e=None):
             
             server_cache = {}
             if gallery_cloud == False:
-                SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
-                print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
+                if SERVER != None:
+                    SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
+                    print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
 
             gallery_cloud = True
         
@@ -1139,7 +1150,9 @@ def load_saved_house(index = 0):
 def submit_house():
     global SERVER, gallery_idx, server_cache, SERVER_UP
     server_cache = {}
-
+    if SERVER == None:
+        return
+    
     SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
 
     print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
@@ -1174,6 +1187,8 @@ def submit_house():
 
 def load_online_house(index=0):
     global server_cache, SERVER_UP
+    if SERVER == None:
+        return None, None
     if not SERVER_UP:
         return None, None
     if not (index  in server_cache):

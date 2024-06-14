@@ -674,7 +674,7 @@ def handle_keypress_title(e=None):
             if info_pos < 0.05: 
                 exit_loop()
     else:
-        if e.keysym.lower() == "a" and not devlog:
+        if e.keysym.lower() == "a" and not devlog and top_sneaky_pos < 0.05:
             gallery = not gallery
             server_cache = {}
             
@@ -686,11 +686,11 @@ def handle_keypress_title(e=None):
                 hide_top_sneaky(e)
 
 
-        elif e.keysym.lower() == "d" and not gallery and not devlog:
+        elif e.keysym.lower() == "d" and not gallery and not devlog and top_sneaky_pos < 0.05:
             if gallery_pos < 16:
                 ramp_noise = True
         
-        elif e.keysym.lower() == "f" and not gallery:
+        elif e.keysym.lower() == "f" and not gallery and top_sneaky_pos < 0.05:
             devlog = not devlog
 
         elif gallery and e.keysym.lower() == "i":

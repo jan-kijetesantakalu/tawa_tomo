@@ -1,9 +1,5 @@
 Win Screen
 
-Place Holders
-	- Devlog
-	- Lore
-
 Lore 
 	- Devlog
 	- Lore

@@ -1,7 +1,8 @@
-global WIDTH, HEIGHT, canvas, canvas_label, canvas_tk, to_do, devlog, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER, SERVER_UP, server_cache, top_sneaky_pos, top_sneaky_after_id, ramp_noise_devlog #, SCALE
+global WIDTH, PORT, HEIGHT, canvas, canvas_label, canvas_tk, to_do, devlog, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER, SERVER_UP, server_cache, top_sneaky_pos, top_sneaky_after_id, ramp_noise_devlog #, SCALE
 
 REPO = "jan-kijetesantakalu/tawa_tomo"
-SERVER = 'http://many-wholesome.co.uk:5001'
+SERVER = 'https://many-wholesome.co.uk:443/tawa_tomo'
+PORT = 443
 
 import tkinter as tk
 from random import randint, choice
@@ -32,6 +33,10 @@ mainloop = True
 #https://stackoverflow.com/questions/3764291/how-can-i-see-if-theres-an-available-and-active-network-connection-in-python
 def internet(host="api.github.com", port=443, timeout=3):
     global SERVER
+    
+    if "/" in host:
+        host = host.split("/")[0]
+
     if SERVER == None:
         return False
 
@@ -47,13 +52,16 @@ if SERVER != None and ":" not in SERVER:
     print("Server format: http[s]://hostname.tld:PORT/root")
     exit()
 
+if SERVER.count(":") == 2:
+    PORT = int(SERVER.split(":")[-1].split("/")[0] )
+
 if SERVER != None:
-    SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
+    SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), PORT)
 else:
     SERVER_UP = False
 
 if SERVER != None:
-    print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status", "up" if SERVER_UP else "down")
+    print(f"{SERVER.split(":")[1].replace("//", "")} port {PORT} status", "up" if SERVER_UP else "down")
 
 if not os.path.isdir("assets"):
     print("./assets not found. Are you running from the correct location?")
@@ -711,8 +719,8 @@ def handle_keypress_title(e=None):
             server_cache = {}
             if gallery_cloud == False:
                 if SERVER != None:
-                    SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
-                    print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
+                    SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), PORT)
+                    print(f"{SERVER.split(":")[1].replace("//", "")} port {PORT} status {SERVER_UP}")
 
             gallery_cloud = True
         
@@ -1186,14 +1194,14 @@ def load_saved_house(index = 0):
 
 
 def submit_house():
-    global SERVER, gallery_idx, server_cache, SERVER_UP
+    global SERVER, gallery_idx, server_cache, SERVER_UP, PORT
     server_cache = {}
     if SERVER == None:
         return
     
-    SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), int(SERVER.split(":")[-1]))
+    SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), PORT)
 
-    print(f"{SERVER.split(":")[1].replace("//", "")} port {int(SERVER.split(":")[-1])} status {SERVER_UP}")
+    print(f"{SERVER.split(":")[1].replace("//", "")} port {PORT} status {SERVER_UP}")
 
     if not SERVER_UP:
         return
@@ -1219,6 +1227,7 @@ def submit_house():
     save.append(rooms_t)
     print("\nsaving: ".join([str(i) for i in rule]))
     save.append(rule)
+    print(SERVER+"/submit_house")
     x = requests.post(SERVER+"/submit_house", json=save)
     print("sent request:", x.text)
 

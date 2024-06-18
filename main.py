@@ -52,7 +52,7 @@ if SERVER != None and ":" not in SERVER:
     print("Server format: http[s]://hostname.tld:PORT/root")
     exit()
 
-if SERVER.count(":") == 2:
+if SERVER != None and SERVER.count(":") == 2:
     PORT = int(SERVER.split(":")[-1].split("/")[0] )
 
 if SERVER != None:

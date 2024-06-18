@@ -3,6 +3,8 @@ global WIDTH, PORT, HEIGHT, canvas, canvas_label, canvas_tk, to_do, devlog, curs
 REPO = "jan-kijetesantakalu/tawa_tomo"
 SERVER = 'https://many-wholesome.co.uk:443/tawa_tomo'
 PORT = 443
+PROXIES = {}
+
 
 import tkinter as tk
 from random import randint, choice
@@ -11,7 +13,7 @@ import glob, sys, os, time, requests, datetime, json, socket, copy
 import numpy as np
 
 if "-h" in sys.argv or "--help" in sys.argv:
-    print("Options:\n--server http[s]://hostname.tld:PORT/root | Specify remote server\n--noserver | disable internet features\n--help | -h | print this message\n\n")
+    print("Options:\n--server http[s]://hostname.tld:PORT/root | Specify remote server\n--proxy [PROXY SERVER] | Specify HTTP proxy\n--noserver | disable internet features\n--help | -h | print this message\n\n")
     exit()
 
 if "--server" in sys.argv:
@@ -19,6 +21,13 @@ if "--server" in sys.argv:
         SERVER = sys.argv[sys.argv.index("--server") + 1]
     except:
         print("No argument provided for --server")
+
+if "--proxy" in sys.argv:
+    try:
+        PROXIES["http"] = sys.argv[sys.argv.index("--proxy") + 1]
+        PROXIES["https"] = sys.argv[sys.argv.index("--proxy") + 1]
+    except:
+        print("No argument provided for proxy")
 
 if "--noserver" in sys.argv:
     SERVER = None
@@ -34,6 +43,10 @@ mainloop = True
 def internet(host="api.github.com", port=443, timeout=3):
     global SERVER
     
+    if "http" in PROXIES:
+        print("Can't check net through proxy")
+        return True
+
     if "/" in host:
         host = host.split("/")[0]
 
@@ -84,8 +97,8 @@ if os.path.isfile(".git/HEAD"):
     try:    
         if internet() and ":" in VERSION:
 
-            ONLINE_VERSION = requests.get(f"https://raw.githubusercontent.com/{REPO}/main/version").text
-            ONLINE_HASH = requests.get(f"https://api.github.com/repos/{REPO}/commits").json()[0]["sha"]
+            ONLINE_VERSION = requests.get(f"https://raw.githubusercontent.com/{REPO}/main/version", proxies=PROXIES).text
+            ONLINE_HASH = requests.get(f"https://api.github.com/repos/{REPO}/commits", proxies=PROXIES).json()[0]["sha"]
             ONLINE_VERSION += ":" + ONLINE_HASH
     
     
@@ -1228,7 +1241,7 @@ def submit_house():
     print("\nsaving: ".join([str(i) for i in rule]))
     save.append(rule)
     print(SERVER+"/submit_house")
-    x = requests.post(SERVER+"/submit_house", json=save)
+    x = requests.post(SERVER+"/submit_house", json=save, proxies=PROXIES)
     print("sent request:", x.text)
 
 
@@ -1239,7 +1252,7 @@ def load_online_house(index=0):
     if not SERVER_UP:
         return None, None
     if not (index  in server_cache):
-        server_cache[index] = requests.get(SERVER+f"/get_house?index={index}").json()
+        server_cache[index] = requests.get(SERVER+f"/get_house?index={index}", proxies=PROXIES).json()
     return server_cache[index], str(hash(str(server_cache[index])))
 
 def create_gallery(index = 0):

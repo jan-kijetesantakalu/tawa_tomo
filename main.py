@@ -74,7 +74,7 @@ else:
     SERVER_UP = False
 
 if SERVER != None:
-    print(f"{SERVER.split(":")[1].replace("//", "")} port {PORT} status", "up" if SERVER_UP else "down")
+    print(f"{SERVER.split(':')[1].replace('//', '')} port {PORT} status", "up" if SERVER_UP else "down")
 
 if not os.path.isdir("assets"):
     print("./assets not found. Are you running from the correct location?")
@@ -733,7 +733,7 @@ def handle_keypress_title(e=None):
             if gallery_cloud == False:
                 if SERVER != None:
                     SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), PORT)
-                    print(f"{SERVER.split(":")[1].replace("//", "")} port {PORT} status {SERVER_UP}")
+                    print(f"{SERVER.split(':')[1].replace('//', '')} port {PORT} status", "up" if SERVER_UP else "down")
 
             gallery_cloud = True
         
@@ -1214,7 +1214,7 @@ def submit_house():
     
     SERVER_UP = internet(SERVER.split(":")[1].replace("//", ""), PORT)
 
-    print(f"{SERVER.split(":")[1].replace("//", "")} port {PORT} status {SERVER_UP}")
+    print(f"{SERVER.split(':')[1].replace('//', '')} port {PORT} status", "up" if SERVER_UP else "down")
 
     if not SERVER_UP:
         return

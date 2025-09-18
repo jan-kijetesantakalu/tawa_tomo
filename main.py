@@ -1,4 +1,4 @@
-global WIDTH, PORT, HEIGHT, canvas, canvas_label, canvas_tk, to_do, devlog, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER, SERVER_UP, server_cache, top_sneaky_pos, top_sneaky_after_id, ramp_noise_devlog #, SCALE
+global WIDTH, PORT, HEIGHT, canvas, canvas_label, canvas_tk, to_do, devlog, cursor_pos, gameloop, to_do_pos, to_do_after_id, update_to_do, sleep_pos, sleep_after_id, sleep_time, days, num_rules, num_wall_rules, setup_scroll, title_loop, mainloop, info_pos, info_after_id, win, win_after_id, title_extras, noise, ramp_noise, gallery, gallery_idx, gallery_cloud, SERVER, SERVER_UP, server_cache, top_sneaky_pos, top_sneaky_after_id, ramp_noise_devlog, joy, joysticks #, SCALE
 
 REPO = "jan-kijetesantakalu/tawa_tomo"
 SERVER = 'https://many-wholesome.co.uk:443/tawa_tomo'
@@ -11,9 +11,42 @@ from random import randint, choice
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 import glob, sys, os, time, requests, datetime, json, socket, copy
 import numpy as np
+import pyautogui
+
+# JoyStick
+joy = False
+if True or "-j" in sys.argv or "--joy" in sys.argv:
+    joy = True
+    import pygame
+    pygame.init()
+    pygame.joystick.init()
+    if pygame.joystick.get_count() < 2:
+        print("Joystick(s) not found\n")
+        joy = False
+        pygame.quit()
+    else:
+        joysticks = [pygame.joystick.Joystick(0), pygame.joystick.Joystick(1)]
+        for joystick in joysticks:
+            joystick.init()
+            print("Initialised Joystick")
+
+def translate_joystick_input():
+    if joy:
+        for event in pygame.event.get():
+            if event.type == pygame.JOYBUTTONDOWN:
+                keys = ["a","s","d","f","z","x","c","v"]
+                pyautogui.press(keys[(int(event.joy)*4)+(int(event.button))])
+                #print(event.joy, event.button, "\n\n")
+            if event.type == pygame.JOYAXISMOTION:
+                keys1 = ["i","j","k","l"]
+                axis = event.axis
+                value = event.value
+                print(f"{event.joy}: Axis {axis} value: {value}")
+                # ELOT TO DO
+
 
 if "-h" in sys.argv or "--help" in sys.argv:
-    print("Options:\n--server http[s]://hostname.tld:PORT/root | Specify remote server\n--proxy [PROXY SERVER] | Specify HTTP proxy\n--noserver | disable internet features\n--help | -h | print this message\n\n")
+    print("Options:\n--server http[s]://hostname.tld:PORT/root | Specify remote server\n--proxy [PROXY SERVER] | Specify HTTP proxy\n--noserver | disable internet features\n--joy | -j | enable joystick controls\n--help | -h | print this message\n\n")
     exit()
 
 if "--server" in sys.argv:
@@ -36,7 +69,7 @@ print(f"using remote server: {SERVER}")
 
 mainloop = True
 
-
+    
 
 
 #https://stackoverflow.com/questions/3764291/how-can-i-see-if-theres-an-available-and-active-network-connection-in-python
@@ -118,9 +151,9 @@ else:
 
 
 #Disable printing if not in debug mode
-if len(sys.argv) <= 1 or not "--debug" in sys.argv:
-    sys.stdout = open(os.devnull, 'w')
-
+if True or len(sys.argv) <= 1 or not "--debug" in sys.argv:
+    # sys.stdout = open(os.devnull, 'w')
+    pass
 
 def save_house(r, rule):
     save = []
@@ -1309,6 +1342,7 @@ try:
     while time.time() - start_time < 3:
         frame_start = time.time()
     
+        translate_joystick_input()
         root.update_idletasks()
         root.update()
     
@@ -1322,6 +1356,8 @@ try:
     while mainloop:
         root.unbind("<KeyPress>")
         root.bind("<KeyPress>", handle_keypress_title)
+        
+            
 
         # title
         title_loop = True
@@ -1338,7 +1374,11 @@ try:
         gallery_cloud = False
         while title_loop and mainloop:
             frame_start = time.time()
-            root.update_idletasks()         
+            translate_joystick_input()
+            root.update_idletasks()
+                # PROCESS EVENTS !!!
+                # Find all handle_keypress things and implement like this in stead
+                #TODO: finish
             root.update()
             draw_asset("back")
             if not title_extras:
@@ -1483,6 +1523,7 @@ try:
 
         while setup_loop and mainloop and setup_scroll < 0:
             frame_start = time.time()
+            translate_joystick_input()
             root.update_idletasks()
             root.update()
             draw_setup()
@@ -1496,6 +1537,7 @@ try:
         setup_sleep = True
         while setup_loop and mainloop:
             frame_start = time.time()
+            translate_joystick_input()
             root.update_idletasks()
             root.update()
             draw_setup()
@@ -1528,6 +1570,7 @@ try:
 
         while gameloop and mainloop:
             frame_start = time.time()
+            translate_joystick_input()
             root.update_idletasks()
             root.update()
             
@@ -1555,3 +1598,7 @@ except KeyboardInterrupt as KB:
     print(KB)
 
 root.destroy()
+if joy:
+    for joystick in joysticks:
+        pygame.joystick.quit()
+    pygame.quit()

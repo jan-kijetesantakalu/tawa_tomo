@@ -34,13 +34,13 @@ def translate_joystick_input():
     if joy:
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
-                keys = ["a","s","d","f","z","x","c","v"]
-                pyautogui.press(keys[(int(event.joy)*4)+(int(event.button))])
+                keys = ["f","a","s","d","v","z","x","c"]
+                pyautogui.press(keys[((int(event.joy)*4)+(int(event.button)))% 8])
                 #print(event.joy, event.button, "\n\n")
             if event.type == pygame.JOYAXISMOTION:
                 keys1 = ["j","i","l","k","left","up","right","down"]
                 if float(event.value) > 0.5 or float(event.value) < -0.5:
-                    pyautogui.press(keys[(4*int(event.joy))+int(event.axis)+int(event.value)+1])
+                    pyautogui.press(keys1[((4*int(event.joy))+int(event.axis)+int(event.value)+1)%8])
                 # value = event.value
                 # axis = event.axis
                 # print(f"{event.joy}: Axis {axis} value: {value}")
@@ -1604,3 +1604,4 @@ if joy:
     for joystick in joysticks:
         pygame.joystick.quit()
     pygame.quit()
+

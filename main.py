@@ -15,6 +15,7 @@ import pyautogui
 
 # JoyStick
 joy = False
+joy = False
 if True or "-j" in sys.argv or "--joy" in sys.argv:
     joy = True
     import pygame
@@ -229,7 +230,9 @@ def draw_asset(asset = "placeholder", pos = (0,0), dest = canvas):
     return dest
 
 #Create Root Window
+print("Attempting to create root")
 root = tk.Tk()
+print("Created Root")
 root.attributes('-fullscreen', True)
 root.protocol("WM_DELETE_WINDOW", exit_loop)
 root.title("tawa tomo - jan Kili Lili anu jan Kijetesantakalu")
